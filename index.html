@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Rola</title>
+<title>RolaIO</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -96,7 +96,7 @@ body{
   border-bottom:1px solid #e8e8e8;
   height:26px;background:#fafafa;
 }
-.th-ruler{width:22px;flex-shrink:0;border-right:1px solid #e8e8e8;}
+.th-ruler{width:30px;flex-shrink:0;border-right:1px solid #e8e8e8;}
 .th-tracks{display:flex;flex:1;}
 .th-track{
   flex:1;display:flex;align-items:center;justify-content:center;
@@ -113,7 +113,7 @@ body{
 
 /* Reading line */
 .rline{
-  position:absolute;left:22px;right:0;height:1.5px;
+  position:absolute;left:30px;right:0;height:1.5px;
   background:#111;z-index:10;pointer-events:none;
 }
 .rline::before{
@@ -130,7 +130,7 @@ body{
 .indicators{
   display:flex;flex-shrink:0;
   border-top:1px solid #e8e8e8;
-  height:56px;padding:7px 8px 7px 30px;gap:6px;
+  height:56px;padding:7px 8px 7px 38px;gap:6px;
   background:#fafafa;
 }
 .ind{
@@ -206,7 +206,7 @@ body{
 // ── CONFIG ──────────────────────────────────────────────────────
 const TRACKS=4,BARS=8,BPB=4,TOTAL=BARS*BPB,SUB=4,SNAP=1/SUB;
 const SNAMES=['kick','snare','hihat','tom'];
-const RULER=22;
+const RULER=30;
 // Square pin dimensions
 const SQ=9;   // half-size: square is SQ*2 x SQ*2
 const HIT=18; // hit radius in px
@@ -314,10 +314,10 @@ function render(){
     // Bar numbers
     if(isBar&&b>=0&&b<=TOTAL){
       const bar=Math.round(b/BPB);
-      ctx.fillStyle='#c8c8c8';
-      ctx.font='8px Space Mono,monospace';
+      ctx.fillStyle='#999';
+      ctx.font='bold 11px Space Mono,monospace';
       ctx.textAlign='center';
-      ctx.fillText(bar+1, RULER/2, y+10);
+      ctx.fillText(bar+1, RULER/2, y+4);
     }
   }
 
@@ -394,7 +394,7 @@ function clearTrig(){ triggered=[new Set(),new Set(),new Set(),new Set()]; }
 
 // ── PLAYBACK ─────────────────────────────────────────────────────
 function startPlay(){
-  unlockAudio();
+  ensureAudio();
   playing=true; lastTs=null;
   bPlay.textContent='⏸ Pausa'; bPlay.classList.add('on');
   raf=requestAnimationFrame(loop);
@@ -496,36 +496,32 @@ editBtn.addEventListener('click',()=>{
 bpmS.addEventListener('input',()=>{ bpm=parseInt(bpmS.value); bpmV.textContent=bpm; });
 
 // ── SOUND ────────────────────────────────────────────────────────
-let ac=null;
-let acUnlocked=false;
+let ac = null;
 
-function getAC(){
-  if(!ac) ac=new(window.AudioContext||window.webkitAudioContext)();
-  return ac;
-}
-
-// Desbloqueo universal para iOS/Android:
-// reproduce un buffer de silencio de 1 muestra en el mismo gesto del usuario
-function unlockAudio(){
-  if(acUnlocked) return;
-  const a=getAC();
-  // Reanudar si está suspendido (política de autoplay)
-  const resume=a.state==='suspended'?a.resume():Promise.resolve();
-  resume.then(()=>{
-    // Buffer de silencio para desbloquear iOS
-    const buf=a.createBuffer(1,1,22050);
-    const src=a.createBufferSource();
-    src.buffer=buf;
-    src.connect(a.destination);
+// En iOS el AudioContext DEBE crearse dentro del handler del gesto del usuario.
+// Lo creamos la primera vez que el usuario toca cualquier cosa, y de ahí en más
+// solo lo reanudamos si queda suspendido.
+function ensureAudio() {
+  if (!ac) {
+    ac = new (window.AudioContext || window.webkitAudioContext)();
+    // Reproducir un buffer de silencio inmediatamente para desbloquear iOS
+    const buf = ac.createBuffer(1, 1, ac.sampleRate);
+    const src = ac.createBufferSource();
+    src.buffer = buf;
+    src.connect(ac.destination);
     src.start(0);
-    acUnlocked=true;
-  });
+  } else if (ac.state === 'suspended') {
+    ac.resume();
+  }
 }
 
-// Llamar unlockAudio en cualquier toque sobre la página
-document.addEventListener('touchstart',unlockAudio,{once:false,passive:true});
-document.addEventListener('touchend',unlockAudio,{once:false,passive:true});
-document.addEventListener('pointerdown',unlockAudio,{passive:true});
+// Desbloquear en el primer toque sobre cualquier elemento
+['touchstart','mousedown','pointerdown'].forEach(ev => {
+  document.addEventListener(ev, function handler() {
+    ensureAudio();
+    document.removeEventListener(ev, handler);
+  }, { passive: true });
+});
 function playKick(a,t){
   const o=a.createOscillator(),g=a.createGain();
   o.connect(g);g.connect(a.destination);
@@ -569,10 +565,9 @@ function playTom(a,t){
 const SFNS=[playKick,playSnare,playHihat,playTom];
 function trigSnd(t){
   if(!sndOn[t]) return;
-  const a=getAC();
-  // Re-reanudar por si el sistema lo suspendió (ej. al minimizar)
-  if(a.state==='suspended') a.resume();
-  SFNS[t](a,a.currentTime);
+  if(!ac) return; // aún no hubo gesto
+  if(ac.state==='suspended') ac.resume();
+  SFNS[t](ac, ac.currentTime);
 }
 function tglSnd(t){
   sndOn[t]=!sndOn[t];
