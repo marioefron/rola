@@ -254,7 +254,8 @@ function resize(){
   canvas.width=wW; canvas.height=wH;
   tW=(wW-RULER)/TRACKS;
   rY=Math.round(wH*0.22);
-  ppb=wH/(BPB*2.3);
+  // Más separación entre líneas: ~1 compás visible encima + 2 abajo
+  ppb=wH/(BPB*1.4);
   rline.style.top=rY+'px';
   render();
 }
@@ -393,7 +394,8 @@ function clearTrig(){ triggered=[new Set(),new Set(),new Set(),new Set()]; }
 
 // ── PLAYBACK ─────────────────────────────────────────────────────
 function startPlay(){
-  getAC(); playing=true; lastTs=null;
+  unlockAudio();
+  playing=true; lastTs=null;
   bPlay.textContent='⏸ Pausa'; bPlay.classList.add('on');
   raf=requestAnimationFrame(loop);
 }
@@ -495,10 +497,35 @@ bpmS.addEventListener('input',()=>{ bpm=parseInt(bpmS.value); bpmV.textContent=b
 
 // ── SOUND ────────────────────────────────────────────────────────
 let ac=null;
+let acUnlocked=false;
+
 function getAC(){
   if(!ac) ac=new(window.AudioContext||window.webkitAudioContext)();
-  if(ac.state==='suspended') ac.resume(); return ac;
+  return ac;
 }
+
+// Desbloqueo universal para iOS/Android:
+// reproduce un buffer de silencio de 1 muestra en el mismo gesto del usuario
+function unlockAudio(){
+  if(acUnlocked) return;
+  const a=getAC();
+  // Reanudar si está suspendido (política de autoplay)
+  const resume=a.state==='suspended'?a.resume():Promise.resolve();
+  resume.then(()=>{
+    // Buffer de silencio para desbloquear iOS
+    const buf=a.createBuffer(1,1,22050);
+    const src=a.createBufferSource();
+    src.buffer=buf;
+    src.connect(a.destination);
+    src.start(0);
+    acUnlocked=true;
+  });
+}
+
+// Llamar unlockAudio en cualquier toque sobre la página
+document.addEventListener('touchstart',unlockAudio,{once:false,passive:true});
+document.addEventListener('touchend',unlockAudio,{once:false,passive:true});
+document.addEventListener('pointerdown',unlockAudio,{passive:true});
 function playKick(a,t){
   const o=a.createOscillator(),g=a.createGain();
   o.connect(g);g.connect(a.destination);
@@ -540,7 +567,13 @@ function playTom(a,t){
   o.start(t);o.stop(t+.22);
 }
 const SFNS=[playKick,playSnare,playHihat,playTom];
-function trigSnd(t){ if(!sndOn[t]) return; const a=getAC(); SFNS[t](a,a.currentTime); }
+function trigSnd(t){
+  if(!sndOn[t]) return;
+  const a=getAC();
+  // Re-reanudar por si el sistema lo suspendió (ej. al minimizar)
+  if(a.state==='suspended') a.resume();
+  SFNS[t](a,a.currentTime);
+}
 function tglSnd(t){
   sndOn[t]=!sndOn[t];
   const b=document.getElementById('sb'+t),on=sndOn[t];
