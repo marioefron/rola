@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>RolaIO</title>
+<title>Rola</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -75,6 +75,11 @@ body{
 .btn.lp.on{border-color:#111;color:#111;}
 .btn.lp.off{border-color:#ddd;color:#ccc;}
 .btn.clr{border-color:#ddd;color:#ccc;}
+.metro-lbl{font-size:9px;color:#aaa;letter-spacing:.05em;text-transform:uppercase;flex-shrink:0;}
+.metro-val{font-size:12px;font-weight:700;color:#111;min-width:20px;text-align:center;}
+.btn.metro-adj{padding:4px 10px;border-color:#ccc;color:#888;min-width:28px;}
+.btn.metro-sub{padding:4px 9px;border-color:#ddd;color:#bbb;font-size:9px;}
+.btn.metro-sub.on{border-color:#111;color:#111;}
 
 .sep{width:1px;height:18px;background:#e8e8e8;flex-shrink:0;margin:0 2px;}
 
@@ -150,6 +155,17 @@ body{
   background:#ffffffee;padding:3px 9px;border-radius:2px;border:1px solid #e0e0e0;
 }
 .hint.show{opacity:1;}
+
+.edit-clr{
+  position:absolute;bottom:12px;right:12px;
+  font-family:'Space Mono',monospace;font-size:9px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;
+  padding:6px 12px;border-radius:3px;
+  border:1.5px solid #111;color:#111;
+  background:#fff;cursor:pointer;
+  z-index:20;display:none;
+}
+.edit-clr.show{display:block;}
 </style>
 </head>
 <body>
@@ -177,6 +193,17 @@ body{
     <button class="snd-btn on" id="sb2" onclick="tglSnd(2)">S3</button>
     <button class="snd-btn on" id="sb3" onclick="tglSnd(3)">S4</button>
   </div>
+  <!-- Row 3: metro controls -->
+  <div class="row2" id="row3" style="border-top:1px solid #ebebeb;">
+    <span class="metro-lbl">Compases</span>
+    <button class="btn metro-adj" id="bars-dn">−</button>
+    <span id="bars-v" class="metro-val">8</span>
+    <button class="btn metro-adj" id="bars-up">+</button>
+    <div class="sep"></div>
+    <span class="metro-lbl">Subdivisión</span>
+    <button class="btn metro-sub on" id="sub-bin">4</button>
+    <button class="btn metro-sub" id="sub-ter">3</button>
+  </div>
 </div>
 
 <div class="track-headers">
@@ -193,6 +220,7 @@ body{
   <canvas id="roll-canvas"></canvas>
   <div class="rline" id="rline"><span class="rline-lbl">LDR</span></div>
   <div class="hint" id="hint">TAP = agregar · TAP en cuadrado = borrar · DESLIZAR = scroll</div>
+  <button class="edit-clr" id="edit-clr" onclick="clearAll()">Limpiar todo</button>
 </div>
 
 <div class="indicators" id="inds">
@@ -204,12 +232,29 @@ body{
 
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────
-const TRACKS=4,BARS=8,BPB=4,TOTAL=BARS*BPB,SUB=4,SNAP=1/SUB;
+const TRACKS=4;
 const SNAMES=['kick','snare','hihat','tom'];
 const RULER=30;
-// Square pin dimensions
-const SQ=9;   // half-size: square is SQ*2 x SQ*2
-const HIT=18; // hit radius in px
+const SQ=9;
+const HIT=18;
+
+// ── METRO (mutable) ──────────────────────────────────────────────
+let BARS=8;   // cantidad de compases
+let BPB=4;    // beats por compás (4=binario, 3=ternario)
+let SUB=4;    // subdivisiones por beat (4=binario, 3=ternario)
+let SNAP=1/SUB;
+let TOTAL=BARS*BPB;
+
+function recomputeMeter(){
+  SNAP=1/SUB;
+  TOTAL=BARS*BPB;
+  // Recortar notas que quedan fuera
+  for(let t=0;t<TRACKS;t++)
+    notes[t]=notes[t].filter(b=>b>=0&&b<TOTAL);
+  // Corregir playhead
+  if(playhead>=TOTAL) playhead=0;
+  clearTrig();
+}
 
 // ── STATE ────────────────────────────────────────────────────────
 let bpm=80,playing=false,looping=true,editMode=false;
@@ -299,9 +344,9 @@ function render(){
     if(b<-SNAP||b>TOTAL+SNAP) continue;
     const y=beatY(b);
     if(y<-2||y>wH+2) continue;
-    const isBar=Math.abs(b%BPB)<.001;
-    const isBeat=!isBar&&Math.abs(b%1)<.001;
-    const isSub=!isBar&&!isBeat;
+    const isBar =b>=0 && Math.abs(b % BPB)<0.001;
+    const isBeat=!isBar && Math.abs(b % 1)<0.001;
+    const isSub =!isBar&&!isBeat;
     if(isSub&&ppb<14) continue;
 
     // Grid line: bar = #d8d8d8, beat = #ebebeb, subdiv = #f3f3f3
@@ -394,7 +439,6 @@ function clearTrig(){ triggered=[new Set(),new Set(),new Set(),new Set()]; }
 
 // ── PLAYBACK ─────────────────────────────────────────────────────
 function startPlay(){
-  ensureAudio();
   playing=true; lastTs=null;
   bPlay.textContent='⏸ Pausa'; bPlay.classList.add('on');
   raf=requestAnimationFrame(loop);
@@ -485,6 +529,7 @@ editBtn.addEventListener('click',()=>{
   editBtn.classList.toggle('on',editMode);
   editBtn.textContent=editMode?'✓ Listo':'✏ Editar';
   canvas.classList.toggle('editing',editMode);
+  document.getElementById('edit-clr').classList.toggle('show',editMode);
   if(editMode){
     pausePlay();
     scrollBeat=playhead+(rY/ppb); pScrollRef=scrollBeat;
@@ -493,82 +538,134 @@ editBtn.addEventListener('click',()=>{
   }
   render();
 });
+
+function clearAll(){
+  notes=[[],[],[],[]];
+  render();
+}
 bpmS.addEventListener('input',()=>{ bpm=parseInt(bpmS.value); bpmV.textContent=bpm; });
 
-// ── SOUND ────────────────────────────────────────────────────────
-let ac = null;
+// ── METRO CONTROLS ───────────────────────────────────────────────
+const barsV=document.getElementById('bars-v');
+const subBin=document.getElementById('sub-bin');
+const subTer=document.getElementById('sub-ter');
 
-// En iOS el AudioContext DEBE crearse dentro del handler del gesto del usuario.
-// Lo creamos la primera vez que el usuario toca cualquier cosa, y de ahí en más
-// solo lo reanudamos si queda suspendido.
-function ensureAudio() {
-  if (!ac) {
-    ac = new (window.AudioContext || window.webkitAudioContext)();
-    // Reproducir un buffer de silencio inmediatamente para desbloquear iOS
-    const buf = ac.createBuffer(1, 1, ac.sampleRate);
-    const src = ac.createBufferSource();
-    src.buffer = buf;
-    src.connect(ac.destination);
-    src.start(0);
-  } else if (ac.state === 'suspended') {
-    ac.resume();
-  }
-}
-
-// Desbloquear en el primer toque sobre cualquier elemento
-['touchstart','mousedown','pointerdown'].forEach(ev => {
-  document.addEventListener(ev, function handler() {
-    ensureAudio();
-    document.removeEventListener(ev, handler);
-  }, { passive: true });
+document.getElementById('bars-dn').addEventListener('click',()=>{
+  if(BARS<=1) return;
+  BARS--;
+  barsV.textContent=BARS;
+  recomputeMeter();
+  render();
 });
-function playKick(a,t){
-  const o=a.createOscillator(),g=a.createGain();
-  o.connect(g);g.connect(a.destination);
-  o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(38,t+.08);
-  g.gain.setValueAtTime(1,t);g.gain.exponentialRampToValueAtTime(.001,t+.32);
-  o.start(t);o.stop(t+.32);
-  const buf=a.createBuffer(1,a.sampleRate*.02,a.sampleRate),d=buf.getChannelData(0);
-  for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length);
-  const s=a.createBufferSource(),g2=a.createGain();
-  s.buffer=buf;s.connect(g2);g2.connect(a.destination);
-  g2.gain.setValueAtTime(.35,t);g2.gain.exponentialRampToValueAtTime(.001,t+.02);s.start(t);
+document.getElementById('bars-up').addEventListener('click',()=>{
+  if(BARS>=32) return;
+  BARS++;
+  barsV.textContent=BARS;
+  recomputeMeter();
+  render();
+});
+subBin.addEventListener('click',()=>{
+  BPB=4; SUB=4;
+  subBin.classList.add('on'); subTer.classList.remove('on');
+  recomputeMeter(); render();
+});
+subTer.addEventListener('click',()=>{
+  BPB=3; SUB=3;
+  subTer.classList.add('on'); subBin.classList.remove('on');
+  recomputeMeter(); render();
+});
+
+// ── SOUND ────────────────────────────────────────────────────────
+// Estrategia iOS: crear el contexto sincrónicamente en el primer gesto,
+// mantenerlo vivo con un oscilador silencioso permanente,
+// y usar buffers pre-generados en lugar de síntesis en tiempo real.
+
+let ac = null;
+let acReady = false;
+let keepAliveNode = null;
+let prebuiltBuffers = null; // buffers pre-generados al desbloquear
+
+function buildBuffers(a) {
+  // Pre-genera todos los sonidos una sola vez cuando el contexto está listo
+  function kick() {
+    const len = Math.ceil(a.sampleRate * 0.35);
+    const buf = a.createBuffer(1, len, a.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      const t = i / a.sampleRate;
+      const freq = 150 * Math.pow(38/150, t/0.08);
+      const env = Math.exp(-t * 14);
+      const noise = (Math.random()*2-1) * Math.exp(-t*80) * 0.4;
+      d[i] = Math.sin(2*Math.PI*freq*t) * env + noise;
+    }
+    return buf;
+  }
+  function snare() {
+    const len = Math.ceil(a.sampleRate * 0.18);
+    const buf = a.createBuffer(1, len, a.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      const t = i / a.sampleRate;
+      const tone = Math.sin(2*Math.PI*160*t) * Math.exp(-t*30) * 0.5;
+      const noise = (Math.random()*2-1) * Math.exp(-t*22) * 0.7;
+      d[i] = tone + noise;
+    }
+    return buf;
+  }
+  function hihat() {
+    const len = Math.ceil(a.sampleRate * 0.06);
+    const buf = a.createBuffer(1, len, a.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      const t = i / a.sampleRate;
+      d[i] = (Math.random()*2-1) * Math.exp(-t*60) * 0.4;
+    }
+    return buf;
+  }
+  function tom() {
+    const len = Math.ceil(a.sampleRate * 0.22);
+    const buf = a.createBuffer(1, len, a.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      const t = i / a.sampleRate;
+      const freq = 200 * Math.pow(72/200, t/0.14);
+      d[i] = Math.sin(2*Math.PI*freq*t) * Math.exp(-t*18) * 0.75;
+    }
+    return buf;
+  }
+  return [kick(), snare(), hihat(), tom()];
 }
-function playSnare(a,t){
-  const o=a.createOscillator(),og=a.createGain();
-  o.connect(og);og.connect(a.destination);
-  o.frequency.setValueAtTime(200,t);o.frequency.exponentialRampToValueAtTime(100,t+.1);
-  og.gain.setValueAtTime(.5,t);og.gain.exponentialRampToValueAtTime(.001,t+.13);
-  o.start(t);o.stop(t+.13);
-  const len=a.sampleRate*.16,buf=a.createBuffer(1,len,a.sampleRate),data=buf.getChannelData(0);
-  for(let i=0;i<len;i++) data[i]=Math.random()*2-1;
-  const s=a.createBufferSource(),f=a.createBiquadFilter(),ng=a.createGain();
-  s.buffer=buf;f.type='highpass';f.frequency.value=2000;
-  s.connect(f);f.connect(ng);ng.connect(a.destination);
-  ng.gain.setValueAtTime(.65,t);ng.gain.exponentialRampToValueAtTime(.001,t+.16);s.start(t);
+
+function unlockAudio() {
+  if (acReady) return;
+  // Crear sincrónicamente dentro del gesto
+  ac = new (window.AudioContext || window.webkitAudioContext)();
+  // Nodo silencioso permanente para mantener el contexto vivo en iOS
+  keepAliveNode = ac.createGain();
+  keepAliveNode.gain.value = 0;
+  keepAliveNode.connect(ac.destination);
+  const silence = ac.createOscillator();
+  silence.connect(keepAliveNode);
+  silence.start();
+  // Pre-generar buffers
+  prebuiltBuffers = buildBuffers(ac);
+  acReady = true;
 }
-function playHihat(a,t){
-  const len=Math.floor(a.sampleRate*.07),buf=a.createBuffer(1,len,a.sampleRate),data=buf.getChannelData(0);
-  for(let i=0;i<len;i++) data[i]=Math.random()*2-1;
-  const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();
-  s.buffer=buf;f.type='highpass';f.frequency.value=7500;
-  s.connect(f);f.connect(g);g.connect(a.destination);
-  g.gain.setValueAtTime(.38,t);g.gain.exponentialRampToValueAtTime(.001,t+.05);s.start(t);
+
+// Escuchar en touchstart (más temprano posible en iOS) Y en click
+// Usar captura para interceptar antes que cualquier otro handler
+document.addEventListener('touchstart', unlockAudio, { capture: true, passive: true });
+document.addEventListener('click',      unlockAudio, { capture: true, passive: true });
+
+function trigSnd(t) {
+  if (!sndOn[t] || !acReady || !prebuiltBuffers) return;
+  if (ac.state === 'suspended') { ac.resume(); return; }
+  const src = ac.createBufferSource();
+  src.buffer = prebuiltBuffers[t];
+  src.connect(ac.destination);
+  src.start(ac.currentTime);
 }
-function playTom(a,t){
-  const o=a.createOscillator(),g=a.createGain();
-  o.connect(g);g.connect(a.destination);
-  o.frequency.setValueAtTime(200,t);o.frequency.exponentialRampToValueAtTime(72,t+.14);
-  g.gain.setValueAtTime(.75,t);g.gain.exponentialRampToValueAtTime(.001,t+.22);
-  o.start(t);o.stop(t+.22);
-}
-const SFNS=[playKick,playSnare,playHihat,playTom];
-function trigSnd(t){
-  if(!sndOn[t]) return;
-  if(!ac) return; // aún no hubo gesto
-  if(ac.state==='suspended') ac.resume();
-  SFNS[t](ac, ac.currentTime);
-}
+
 function tglSnd(t){
   sndOn[t]=!sndOn[t];
   const b=document.getElementById('sb'+t),on=sndOn[t];
