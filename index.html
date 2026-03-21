@@ -19,6 +19,7 @@ body{
   display:flex;flex-direction:column;
   border-bottom:1px solid #e0e0e0;
   flex-shrink:0;background:#fff;
+  position:relative;z-index:50;
 }
 .row{
   display:flex;align-items:center;
@@ -45,6 +46,17 @@ body{
 }
 #bpm-v{color:#111;font-weight:700;min-width:24px;font-size:10px;}
 
+/* Hamburger */
+.hamburger{
+  width:32px;height:32px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:5px;
+  cursor:pointer;flex-shrink:0;border:none;background:transparent;padding:0;
+}
+.hamburger span{
+  display:block;width:18px;height:1.5px;background:#111;
+  transition:all .2s;
+}
+
 /* Generic button */
 .btn{
   font-family:'Space Mono',monospace;font-size:9px;font-weight:700;
@@ -59,10 +71,8 @@ body{
 .btn.rst{border-color:#ccc;color:#999;}
 .btn.lp.on{border-color:#111;color:#111;}
 .btn.lp.off{border-color:#ddd;color:#ccc;}
-/* edit button */
 .btn.edit{border-color:#ccc;color:#888;}
 .btn.edit.on{border-color:#111;color:#111;}
-/* clear-all: only shown in edit mode, inline in row1 */
 .btn.clr-all{border-color:#bbb;color:#888;display:none;}
 .btn.clr-all.show{display:block;}
 
@@ -79,12 +89,60 @@ body{
 .snd-btn.on{border-color:#111;color:#111;}
 .snd-btn.off{border-color:#eee;color:#ccc;text-decoration:line-through;}
 
-/* Metro */
-.metro-lbl{font-size:9px;color:#aaa;letter-spacing:.05em;text-transform:uppercase;flex-shrink:0;}
+/* ── SLIDE-DOWN MENU ── */
+#side-menu{
+  position:absolute;top:100%;right:0;
+  width:260px;
+  background:#fff;
+  border:1px solid #e0e0e0;
+  border-top:none;
+  box-shadow:0 6px 20px rgba(0,0,0,.08);
+  transform:translateY(-8px);
+  opacity:0;
+  pointer-events:none;
+  transition:transform .2s ease, opacity .2s ease;
+  z-index:100;
+}
+#side-menu.open{
+  transform:translateY(0);
+  opacity:1;
+  pointer-events:all;
+}
+.menu-section{
+  padding:12px 16px;
+  border-bottom:1px solid #ebebeb;
+}
+.menu-section:last-child{border-bottom:none;}
+.menu-title{
+  font-size:8px;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;color:#bbb;margin-bottom:10px;
+}
+.menu-row{
+  display:flex;align-items:center;gap:8px;
+}
+.metro-lbl{font-size:9px;color:#888;letter-spacing:.04em;text-transform:uppercase;flex-shrink:0;}
 .metro-val{font-size:12px;font-weight:700;color:#111;min-width:20px;text-align:center;flex-shrink:0;}
 .btn.adj{padding:4px 10px;border-color:#ccc;color:#888;}
-.btn.msub{padding:4px 10px;border-color:#ddd;color:#bbb;}
+.btn.msub{padding:5px 12px;border-color:#ddd;color:#bbb;}
 .btn.msub.on{border-color:#111;color:#111;}
+
+/* Calibration menu item */
+.menu-cal-btn{
+  width:100%;
+  font-family:'Space Mono',monospace;font-size:9px;font-weight:700;
+  letter-spacing:.07em;text-transform:uppercase;
+  padding:9px 12px;border-radius:3px;
+  border:1.5px solid #ccc;color:#666;
+  background:transparent;cursor:pointer;transition:all .12s;
+  text-align:left;
+}
+.menu-cal-btn:active{transform:scale(.97);}
+
+/* Overlay backdrop (cierra el menú al tocar fuera) */
+#menu-backdrop{
+  display:none;position:fixed;inset:0;z-index:49;
+}
+#menu-backdrop.open{display:block;}
 
 /* Audio unlock banner */
 #audio-banner{
@@ -100,16 +158,39 @@ body{
 /* ── TRACK HEADERS ── */
 .track-headers{
   display:flex;flex-shrink:0;
-  border-bottom:1px solid #e8e8e8;height:26px;background:#fafafa;
+  border-bottom:1px solid #e8e8e8;height:56px;background:#fafafa;
 }
 .th-ruler{width:30px;flex-shrink:0;border-right:1px solid #e8e8e8;}
 .th-tracks{display:flex;flex:1;}
 .th-track{
   flex:1;display:flex;align-items:center;justify-content:center;
   border-right:1px solid #e8e8e8;
-  font-size:8px;font-weight:700;letter-spacing:.1em;color:#bbb;
+  font-size:13px;font-weight:700;letter-spacing:.05em;color:#bbb;
 }
 .th-track:last-child{border-right:none;}
+.th-snd{cursor:pointer;transition:color .12s,background .12s;gap:5px;flex-direction:row;}
+.th-snd.on{background:#888;color:#fff;}
+.th-snd.off{background:#fff;color:#ccc;}
+.spk-icon{
+  width:15px;height:15px;
+  fill:none;stroke:currentColor;stroke-width:1.4;
+  stroke-linecap:round;stroke-linejoin:round;
+  flex-shrink:0;
+}
+.th-snd.off .spk-wave1,
+.th-snd.off .spk-wave2{ display:none; }
+.btn.mute-all{
+  display:flex;align-items:center;gap:5px;
+  border-color:#ccc;color:#999;
+}
+.btn.mute-all .spk-icon{
+  width:12px;height:12px;stroke:currentColor;
+}
+.btn.mute-all.on .spk-wave1,
+.btn.mute-all.on .spk-wave2{ display:block; }
+.btn.mute-all.off .spk-wave1,
+.btn.mute-all.off .spk-wave2{ display:none; }
+.btn.mute-all.off{color:#ccc;border-color:#ddd;}
 
 /* ── ROLL ── */
 .roll-wrapper{flex:1;position:relative;overflow:hidden;background:#fff;}
@@ -142,20 +223,36 @@ body{
   display:flex;flex-shrink:0;
   border-top:1px solid #e8e8e8;
   height:56px;padding:7px 8px 7px 38px;gap:6px;background:#fafafa;
+  transition:background .4s;
 }
 .ind{
   flex:1;border-radius:2px;border:1.5px solid #ddd;
   display:flex;align-items:center;justify-content:center;
   font-size:13px;font-weight:700;color:#ccc;
-  transition:background .04s,border-color .04s,color .04s;
+  transition:background .3s,border-color .3s,color .3s;
 }
 .ind.lit{background:#111;border-color:#111;color:#fff;}
+/* Calibration states */
+.ind.cal-white{background:#fff !important;border-color:#ccc !important;color:#ccc !important;}
+.ind.cal-black{background:#111 !important;border-color:#111 !important;color:#111 !important;}
+
+/* ── CALIBRATION BANNER ── */
+#cal-banner{
+  display:none;
+  align-items:center;justify-content:center;
+  padding:8px 16px;
+  background:#111;color:#fff;
+  font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  flex-shrink:0;text-align:center;
+  border-bottom:1px solid #000;
+}
+#cal-banner.open{display:flex;}
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <!-- Row 1: logo + bpm + edit + clear-all (edit mode) -->
+  <!-- Row 1: logo + bpm + clr-all (edit) + edit btn + hamburger -->
   <div class="row">
     <div class="logo">Rola</div>
     <div class="bpm-ctrl">
@@ -165,44 +262,64 @@ body{
     </div>
     <button class="btn clr-all" id="btn-clr-all">Limpiar</button>
     <button class="btn edit" id="edit-btn">✏ Editar</button>
+    <button class="hamburger" id="hamburger-btn" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </button>
   </div>
   <!-- Row 2: transport + sound toggles -->
   <div class="row">
     <button class="btn rst" id="b-rst">↺</button>
     <button class="btn play" id="b-play">▶ Play</button>
     <button class="btn lp on" id="b-lp">⟳ Loop</button>
-    <div class="sep"></div>
-    <button class="snd-btn on" id="sb0" onclick="tglSnd(0)">S1</button>
-    <button class="snd-btn on" id="sb1" onclick="tglSnd(1)">S2</button>
-    <button class="snd-btn on" id="sb2" onclick="tglSnd(2)">S3</button>
-    <button class="snd-btn on" id="sb3" onclick="tglSnd(3)">S4</button>
+    <button class="btn mute-all on" id="b-mute"><svg class="spk-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h2l3-3v11l-3-3H3z"/><path class="spk-wave1" d="M10 5.5a3 3 0 0 1 0 5"/><path class="spk-wave2" d="M11.5 3.5a5.5 5.5 0 0 1 0 9"/></svg><span>Silenciar</span></button>
   </div>
-  <!-- Row 3: metro -->
-  <div class="row">
-    <span class="metro-lbl">Compases</span>
-    <button class="btn adj" id="bars-dn">−</button>
-    <span class="metro-val" id="bars-v">8</span>
-    <button class="btn adj" id="bars-up">+</button>
-    <div class="sep"></div>
-    <span class="metro-lbl">Subdivisión</span>
-    <button class="btn msub on" id="sub-bin">4</button>
-    <button class="btn msub" id="sub-ter">3</button>
+
+  <!-- Slide-down menu -->
+  <div id="side-menu">
+    <!-- Compases -->
+    <div class="menu-section">
+      <div class="menu-title">Compases</div>
+      <div class="menu-row">
+        <button class="btn adj" id="bars-dn">−</button>
+        <span class="metro-val" id="bars-v">8</span>
+        <button class="btn adj" id="bars-up">+</button>
+      </div>
+    </div>
+    <!-- Subdivisión -->
+    <div class="menu-section">
+      <div class="menu-title">Subdivisión</div>
+      <div class="menu-row">
+        <button class="btn msub on" id="sub-bin">4</button>
+        <button class="btn msub" id="sub-ter">3</button>
+      </div>
+    </div>
+    <!-- Calibración -->
+    <div class="menu-section">
+      <div class="menu-title">Arduino / LDR</div>
+      <button class="menu-cal-btn" onclick="startCalibration()">⊙ Calibración LDR</button>
+    </div>
   </div>
 </div>
 
-<!-- Audio unlock banner: visible hasta que el usuario activa el audio -->
+<!-- Backdrop -->
+<div id="menu-backdrop" onclick="closeMenu()"></div>
+
+<!-- Audio unlock banner -->
 <div id="audio-banner">
   <span>Activar sonido</span>
   <button class="btn unlock" id="btn-unlock" onclick="doUnlock()">♪ Activar</button>
 </div>
 
+<!-- Calibration banner -->
+<div id="cal-banner"><span id="cal-banner-text"></span></div>
+
 <div class="track-headers">
   <div class="th-ruler"></div>
   <div class="th-tracks">
-    <div class="th-track">1</div>
-    <div class="th-track">2</div>
-    <div class="th-track">3</div>
-    <div class="th-track">4</div>
+    <div class="th-track th-snd on" id="th0" onclick="tglSnd(0)"><svg class="spk-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h2l3-3v11l-3-3H3z"/><path class="spk-wave1" d="M10 5.5a3 3 0 0 1 0 5"/><path class="spk-wave2" d="M11.5 3.5a5.5 5.5 0 0 1 0 9"/></svg>1</div>
+    <div class="th-track th-snd on" id="th1" onclick="tglSnd(1)"><svg class="spk-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h2l3-3v11l-3-3H3z"/><path class="spk-wave1" d="M10 5.5a3 3 0 0 1 0 5"/><path class="spk-wave2" d="M11.5 3.5a5.5 5.5 0 0 1 0 9"/></svg>2</div>
+    <div class="th-track th-snd on" id="th2" onclick="tglSnd(2)"><svg class="spk-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h2l3-3v11l-3-3H3z"/><path class="spk-wave1" d="M10 5.5a3 3 0 0 1 0 5"/><path class="spk-wave2" d="M11.5 3.5a5.5 5.5 0 0 1 0 9"/></svg>3</div>
+    <div class="th-track th-snd on" id="th3" onclick="tglSnd(3)"><svg class="spk-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h2l3-3v11l-3-3H3z"/><path class="spk-wave1" d="M10 5.5a3 3 0 0 1 0 5"/><path class="spk-wave2" d="M11.5 3.5a5.5 5.5 0 0 1 0 9"/></svg>4</div>
   </div>
 </div>
 
@@ -212,17 +329,18 @@ body{
   <div class="hint" id="hint">TAP = agregar · TAP en cuadrado = borrar · DESLIZAR = scroll</div>
 </div>
 
-<div class="indicators">
+<div class="indicators" id="indicators-row">
   <div class="ind" id="ind0">1</div>
   <div class="ind" id="ind1">2</div>
   <div class="ind" id="ind2">3</div>
   <div class="ind" id="ind3">4</div>
 </div>
 
+<!-- fin -->
+
 <script>
 // ── CONFIG ───────────────────────────────────────────────────────
 const TRACKS=4, RULER=30, SQ=9, HIT=18;
-const SNAMES=['kick','snare','hihat','tom'];
 
 // ── METRO ────────────────────────────────────────────────────────
 let BARS=8, BPB=4, SUB=4;
@@ -293,18 +411,15 @@ function render(){
   ctx.clearRect(0,0,wW,wH);
   ctx.fillStyle='#fff'; ctx.fillRect(0,0,wW,wH);
 
-  // Ruler bg
   ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,RULER,wH);
   ctx.strokeStyle='#e8e8e8'; ctx.lineWidth=.5;
   ctx.beginPath(); ctx.moveTo(RULER,0); ctx.lineTo(RULER,wH); ctx.stroke();
 
-  // Track separators
   for(let t=1;t<TRACKS;t++){
     ctx.strokeStyle='#f0f0f0'; ctx.lineWidth=.5;
     ctx.beginPath(); ctx.moveTo(RULER+t*tW,0); ctx.lineTo(RULER+t*tW,wH); ctx.stroke();
   }
 
-  // Grid
   const ref=editMode?scrollBeat:playhead;
   const bTop=ref-(wH-rY)/ppb, bBot=ref+rY/ppb;
   const bS=Math.floor(bTop*SUB)/SUB, bE=Math.ceil(bBot*SUB)/SUB;
@@ -327,7 +442,6 @@ function render(){
     }
   }
 
-  // End marker
   const ey=beatY(TOTAL);
   if(ey>-2&&ey<wH+2){
     ctx.strokeStyle='#ccc'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
@@ -337,24 +451,20 @@ function render(){
     ctx.textAlign='left'; ctx.fillText('FIN',RULER+3,ey-3);
   }
 
-  // Edit guide
   if(editMode){
     ctx.strokeStyle='#e0e0e0'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
     ctx.beginPath(); ctx.moveTo(RULER,rY); ctx.lineTo(wW,rY); ctx.stroke();
     ctx.setLineDash([]);
   }
 
-  // ── SQUARES ──
   for(let t=0;t<TRACKS;t++){
     const cx=RULER+t*tW+tW/2;
     for(const beat of notes[t]){
       const y=beatY(beat);
       if(y<-SQ-10||y>wH+SQ+10) continue;
       const lit=!editMode&&active[t]&&Math.abs(beat-playhead)<.12;
-      // tick line
       ctx.strokeStyle='#e0e0e0'; ctx.lineWidth=.5;
       ctx.beginPath(); ctx.moveTo(RULER+t*tW+4,y); ctx.lineTo(RULER+(t+1)*tW-4,y); ctx.stroke();
-      // square
       ctx.fillStyle='#111'; ctx.fillRect(cx-SQ,y-SQ,SQ*2,SQ*2);
       if(lit){ ctx.fillStyle='#fff'; ctx.fillRect(cx-3,y-3,6,6); }
     }
@@ -475,9 +585,22 @@ editBtn.addEventListener('click',()=>{
   }
   render();
 });
-bpmS.addEventListener('input',()=>{ bpm=parseInt(bpmS.value); bpmV.textContent=bpm; });
+const bMute = document.getElementById('b-mute');
+bMute.addEventListener('click',()=>{
+  const anyOn = sndOn.some(v=>v);
+  const newState = !anyOn;
+  sndOn = [newState,newState,newState,newState];
+  [0,1,2,3].forEach(t=>{
+    const b=document.getElementById('th'+t);
+    b.classList.toggle('on', newState);
+    b.classList.toggle('off', !newState);
+  });
+  bMute.classList.toggle('on', newState);
+  bMute.classList.toggle('off', !newState);
+  bMute.querySelector('span').textContent = newState ? 'Silenciar' : 'Activar';
+});
 
-// Metro
+bpmS.addEventListener('input',()=>{ bpm=parseInt(bpmS.value); bpmV.textContent=bpm; });
 document.getElementById('bars-dn').addEventListener('click',()=>{
   if(BARS<=1) return; BARS--;
   document.getElementById('bars-v').textContent=BARS;
@@ -501,14 +624,120 @@ document.getElementById('sub-ter').addEventListener('click',()=>{
   recomputeMeter(); render();
 });
 
-// ── AUDIO ────────────────────────────────────────────────────────
-// El problema en iOS/Chrome mobile es que el AudioContext solo se puede
-// crear y usar si fue iniciado DIRECTAMENTE por un gesto del usuario
-// (click/touchend). Usamos un botón explícito "Activar sonido" que el
-// usuario toca intencionalmente, garantizando el gesto directo.
+// ── HAMBURGER MENU ───────────────────────────────────────────────
+function toggleMenu(){
+  const menu=document.getElementById('side-menu');
+  const back=document.getElementById('menu-backdrop');
+  const isOpen=menu.classList.contains('open');
+  if(isOpen){ closeMenu(); } else {
+    menu.classList.add('open');
+    back.classList.add('open');
+  }
+}
+function closeMenu(){
+  document.getElementById('side-menu').classList.remove('open');
+  document.getElementById('menu-backdrop').classList.remove('open');
+}
 
+// ── CALIBRATION ──────────────────────────────────────────────────
+// ── CALIBRATION ──────────────────────────────────────────────────
+const calBanner     = document.getElementById('cal-banner');
+const calBannerText = document.getElementById('cal-banner-text');
+
+function calSetBanner(text){
+  calBannerText.textContent = text;
+  calBanner.classList.toggle('open', text !== '');
+}
+
+function calSetInds(mode){
+  // mode: 'normal' | 'white' | 'black'
+  inds.forEach(ind => {
+    ind.classList.remove('cal-white','cal-black','lit');
+    if(mode === 'white'){
+      ind.style.background    = '#ffffff';
+      ind.style.borderColor   = '#ddd';
+      ind.style.color         = '#ccc';
+    } else if(mode === 'black'){
+      ind.style.background    = '#111111';
+      ind.style.borderColor   = '#111';
+      ind.style.color         = '#111';
+    } else {
+      ind.style.background    = '';
+      ind.style.borderColor   = '';
+      ind.style.color         = '';
+    }
+  });
+}
+
+function playCalBeep(freq=880, dur=0.12, vol=0.4){
+  if(!ac) return;
+  if(ac.state==='suspended') ac.resume();
+  const o=ac.createOscillator(), g=ac.createGain();
+  o.type='square';
+  o.frequency.value=freq;
+  o.connect(g); g.connect(ac.destination);
+  g.gain.setValueAtTime(vol, ac.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+dur);
+  o.start(ac.currentTime); o.stop(ac.currentTime+dur);
+}
+
+function startCalibration(){
+  closeMenu();
+  pausePlay();
+
+  // Texto 1 — aviso de inicio
+  calSetBanner('Iniciando modo de calibración');
+  calSetInds('normal');
+
+  setTimeout(()=>{
+    // Texto 2 — instrucción al usuario
+    calSetBanner('Presionar el botón "Calibrar" al escuchar la señal');
+
+    // Señal 1: Do3 (130.81 Hz)
+    setTimeout(()=>{
+      playCalBeep(130.81, 0.4, 0.8);
+
+      // Señal 2: Do3
+      setTimeout(()=>{
+        playCalBeep(130.81, 0.4, 0.8);
+
+        // Señal 3: Sol3 (196 Hz) — señal de arranque
+        setTimeout(()=>{
+          playCalBeep(196, 0.55, 1.0);
+
+          // Paso blanco
+          setTimeout(()=>{
+            calSetBanner('Calibrando color blanco');
+            calSetInds('white');
+
+            setTimeout(()=>{
+              // Paso negro
+              playCalBeep(130.81, 0.25);
+              calSetBanner('Calibrando color negro');
+              calSetInds('black');
+
+              setTimeout(()=>{
+                // Fin — doble beep ascendente
+                playCalBeep(1100, 0.1);
+                setTimeout(()=>playCalBeep(1320, 0.18), 160);
+                calSetBanner('Calibración finalizada');
+                calSetInds('normal');
+
+                setTimeout(()=>{ calSetBanner(''); }, 2000);
+
+              }, 5000);
+            }, 5000);
+          }, 500);
+
+        }, 1000);
+      }, 1000);
+    }, 1000);
+  }, 2000);
+}
+
+// ── AUDIO ────────────────────────────────────────────────────────
 let ac = null;
-let bufs = null; // buffers pre-renderizados
+let bufs = null;
 
 function buildBuffers(a){
   function makeKick(){
@@ -545,19 +774,14 @@ function buildBuffers(a){
 }
 
 function doUnlock(){
-  // Este handler es llamado directamente por onclick del botón —
-  // garantiza gesto síncrono, la única forma que iOS acepta.
   if(ac) return;
   ac = new (window.AudioContext || window.webkitAudioContext)();
   bufs = buildBuffers(ac);
-  // Nodo keepalive: oscilador a volumen 0 para que iOS no suspenda el contexto
   const g=ac.createGain(); g.gain.value=0.001; g.connect(ac.destination);
   const osc=ac.createOscillator(); osc.frequency.value=1; osc.connect(g); osc.start();
-  // Actualizar UI del banner
-  const banner=document.getElementById('audio-banner');
   const btn=document.getElementById('btn-unlock');
   btn.textContent='✓ Activo'; btn.classList.add('done');
-  setTimeout(()=>banner.classList.add('hidden'),800);
+  setTimeout(()=>document.getElementById('audio-banner').classList.add('hidden'),800);
 }
 
 function trigSnd(t){
@@ -571,9 +795,8 @@ function trigSnd(t){
 
 function tglSnd(t){
   sndOn[t]=!sndOn[t];
-  const b=document.getElementById('sb'+t), on=sndOn[t];
+  const b=document.getElementById('th'+t), on=sndOn[t];
   b.classList.toggle('on',on); b.classList.toggle('off',!on);
-  b.textContent=`S${t+1}`;
 }
 
 // ── INIT ─────────────────────────────────────────────────────────
