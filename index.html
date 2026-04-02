@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Rola</title>
+<title>ROLLA</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -57,6 +57,7 @@ body{
   width:28px;height:28px;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:4px;
   cursor:pointer;flex-shrink:0;border:none;background:transparent;padding:0;
+  -webkit-appearance:none;appearance:none;
 }
 .hamburger span{
   display:block;width:16px;height:1.5px;background:#111;
@@ -70,6 +71,8 @@ body{
   padding:5px 8px;border-radius:3px;
   border:1.5px solid #ccc;color:#999;
   background:transparent;cursor:pointer;transition:all .12s;flex-shrink:0;
+  -webkit-appearance:none;
+  appearance:none;
 }
 .btn:active{transform:scale(.94);}
 .btn.play{border-color:#111;color:#111;}
@@ -91,6 +94,7 @@ body{
   padding:4px 7px;border-radius:3px;
   border:1.5px solid #ddd;color:#bbb;
   background:transparent;cursor:pointer;transition:all .12s;flex:1;
+  -webkit-appearance:none;appearance:none;
 }
 .snd-btn.on{border-color:#111;color:#111;}
 .snd-btn.off{border-color:#eee;color:#ccc;text-decoration:line-through;}
@@ -141,6 +145,7 @@ body{
   border:1.5px solid #ccc;color:#666;
   background:transparent;cursor:pointer;transition:all .12s;
   text-align:left;
+  -webkit-appearance:none;appearance:none;
 }
 .menu-cal-btn:active{transform:scale(.97);}
 
@@ -259,7 +264,32 @@ body{
 .ind.cal-white{background:#fff !important;border-color:#111 !important;color:#fff !important;}
 .ind.cal-black{background:#111 !important;border-color:#111 !important;color:#111 !important;}
 
-/* ── CALIBRATION MODAL ── */
+/* ── CONFIRM MODAL ── */
+#confirm-modal{
+  display:none;position:fixed;inset:0;z-index:300;
+  background:rgba(255,255,255,0.92);
+  align-items:center;justify-content:center;
+}
+#confirm-modal.open{display:flex;}
+.confirm-box{
+  background:#fff;border:1.5px solid #111;border-radius:6px;
+  padding:24px 22px;width:min(280px,88vw);
+  display:flex;flex-direction:column;align-items:center;gap:20px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.10);
+}
+.confirm-msg{
+  font-size:11px;font-weight:700;letter-spacing:.03em;
+  color:#111;text-align:center;line-height:1.6;
+}
+.confirm-btns{
+  display:flex;gap:10px;width:100%;
+}
+.confirm-btns .btn{
+  flex:1;padding:8px 0;text-align:center;justify-content:center;
+}
+.btn.confirm-yes{border-color:#111;color:#111;}
+.btn.confirm-yes:active{background:#111;color:#fff;}
+.btn.confirm-no{border-color:#ddd;color:#aaa;}
 #cal-modal{
   display:none;position:fixed;inset:0;z-index:200;
   align-items:center;justify-content:center;
@@ -316,7 +346,7 @@ body{
 <div class="topbar">
   <!-- Row 1: logo + bpm + clr-all (edit) + edit btn + hamburger -->
   <div class="row">
-    <div class="logo">Rola</div>
+    <div class="logo">ROLLA</div>
     <div class="bpm-ctrl">
       <span>BPM</span>
       <button class="btn bpm-adj" id="bpm-dn">−</button>
@@ -378,6 +408,17 @@ body{
 <div id="menu-backdrop" onclick="closeMenu()"></div>
 
 <!-- fin banner -->
+
+<!-- Confirm modal -->
+<div id="confirm-modal">
+  <div class="confirm-box">
+    <div class="confirm-msg">¿Estás seguro que querés<br>eliminar todo?</div>
+    <div class="confirm-btns">
+      <button class="btn confirm-no"  onclick="confirmResp(false)">No</button>
+      <button class="btn confirm-yes" onclick="confirmResp(true)">Sí</button>
+    </div>
+  </div>
+</div>
 
 <!-- Calibration phase banner (shown without overlay during white/black phases) -->
 <div id="cal-phase-banner"></div>
@@ -485,7 +526,9 @@ function resize(){
 
 // ── RENDER ───────────────────────────────────────────────────────
 function beatY(b){
-  const ref=editMode?scrollBeat:playhead;
+  // En reproducción: el playhead mueve el contenido
+  // En pausa/edición: scrollBeat controla la vista
+  const ref = playing ? playhead : scrollBeat;
   return rY-(b-ref)*ppb;
 }
 
@@ -510,9 +553,9 @@ function render(){
     if(b<-SNAP||b>TOTAL+SNAP) continue;
     const y=beatY(b);
     if(y<-2||y>wH+2) continue;
-    const isBar =b>=0&&Math.abs(b%BPB)<.001;
-    const isBeat=!isBar&&Math.abs(b%1)<.001;
-    const isSub =!isBar&&!isBeat;
+    const isBar  = Math.round(b * 1000) % Math.round(BPB * 1000) === 0 && b >= 0;
+    const isBeat = !isBar && Math.round(b * 1000) % 1000 === 0;
+    const isSub  = !isBar && !isBeat;
     if(isSub&&ppb<14) continue;
     ctx.strokeStyle=isBar?'#222222':isBeat?'#666666':'#cccccc';
     ctx.lineWidth=isBar?1.8:.5;
@@ -583,6 +626,9 @@ function startPlay(){
 }
 function pausePlay(){
   playing=false;
+  // Sincronizar scroll con la posición actual de reproducción
+  scrollBeat=playhead+(rY/ppb);
+  pScrollRef=scrollBeat;
   bPlay.textContent='▶ Play'; bPlay.classList.remove('on');
   cancelAnimationFrame(raf);
   active=[false,false,false,false];
@@ -601,7 +647,10 @@ function loop(ts){
   raf=requestAnimationFrame(loop);
 }
 
-// ── EDIT POINTER ─────────────────────────────────────────────────
+// ── POINTER ──────────────────────────────────────────────────────
+// El scroll funciona SIEMPRE (modo reproducción y edición).
+// En modo edición además permite agregar/borrar notas con tap.
+
 function ptCoords(e){
   const r=canvas.getBoundingClientRect();
   const src=e.changedTouches?e.changedTouches[0]:e;
@@ -615,14 +664,16 @@ function nearPin(t,beat){
   const tol=HIT/ppb;
   return notes[t].findIndex(b=>Math.abs(b-beat)<=tol);
 }
+
 canvas.addEventListener('pointerdown',e=>{
-  if(!editMode) return;
-  e.preventDefault(); canvas.setPointerCapture(e.pointerId);
+  e.preventDefault();
+  canvas.setPointerCapture(e.pointerId);
   const{py}=ptCoords(e);
   pDown=true; pStartY=py; pMoved=false; pScrollRef=scrollBeat;
 });
+
 canvas.addEventListener('pointermove',e=>{
-  if(!editMode||!pDown) return;
+  if(!pDown) return;
   e.preventDefault();
   const{py}=ptCoords(e);
   const dy=py-pStartY;
@@ -634,10 +685,13 @@ canvas.addEventListener('pointermove',e=>{
     render();
   }
 });
+
 canvas.addEventListener('pointerup',e=>{
-  if(!editMode||!pDown) return;
+  if(!pDown) return;
   e.preventDefault(); pDown=false;
   if(pMoved) return;
+  // Solo agregar/borrar notas en modo edición
+  if(!editMode) return;
   const{t,beat,valid}=ptCoords(e);
   if(!valid||beat<0||beat>TOTAL) return;
   const idx=nearPin(t,beat);
@@ -656,7 +710,14 @@ bLp.addEventListener('click',()=>{
   looping=!looping;
   bLp.classList.toggle('on',looping); bLp.classList.toggle('off',!looping);
 });
-bClrAll.addEventListener('click',()=>{ notes=[[],[],[],[]]; render(); });
+bClrAll.addEventListener('click',()=>{
+  document.getElementById('confirm-modal').classList.add('open');
+});
+
+function confirmResp(yes){
+  document.getElementById('confirm-modal').classList.remove('open');
+  if(yes){ notes=[[],[],[],[]]; render(); }
+}
 editBtn.addEventListener('click',()=>{
   editMode=!editMode;
   editBtn.classList.toggle('on',editMode);
