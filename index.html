@@ -23,51 +23,51 @@ body{
 }
 .row{
   display:flex;align-items:center;
-  width:100%;padding:7px 12px;gap:7px;
+  width:100%;padding:7px 8px;gap:5px;
   border-bottom:1px solid #ebebeb;
 }
 .row:last-child{border-bottom:none;}
 
 .logo{
-  font-family:'Space Mono',monospace;font-weight:700;font-size:13px;
+  font-family:'Space Mono',monospace;font-weight:700;font-size:11px;
   letter-spacing:.08em;text-transform:uppercase;color:#111;flex-shrink:0;
 }
 .bpm-ctrl{
-  display:flex;align-items:center;gap:5px;
-  font-size:10px;color:#aaa;flex:1;
+  display:flex;align-items:center;gap:4px;
+  font-size:10px;color:#aaa;flex:1;min-width:0;
 }
 .bpm-ctrl input[type=range]{
-  -webkit-appearance:none;flex:1;max-width:100px;
-  height:4px;background:#ddd;border-radius:2px;outline:none;
+  -webkit-appearance:none;flex:1;min-width:0;max-width:70px;
+  height:3px;background:#ddd;border-radius:2px;outline:none;
 }
 .bpm-ctrl input[type=range]::-webkit-slider-thumb{
-  -webkit-appearance:none;width:18px;height:18px;
+  -webkit-appearance:none;width:16px;height:16px;
   border-radius:50%;background:#111;cursor:pointer;
 }
-#bpm-v{color:#111;font-weight:700;min-width:28px;font-size:11px;text-align:center;}
+#bpm-v{color:#111;font-weight:700;min-width:22px;font-size:10px;text-align:center;}
 .btn.bpm-adj{
-  padding:0;width:26px;height:26px;border-radius:50%;
-  border:1.5px solid #ccc;color:#666;font-size:14px;
+  padding:0;width:22px;height:22px;border-radius:50%;
+  border:1.5px solid #ccc;color:#666;font-size:13px;
   display:flex;align-items:center;justify-content:center;
   flex-shrink:0;line-height:1;
 }
 
 /* Hamburger */
 .hamburger{
-  width:32px;height:32px;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:5px;
+  width:28px;height:28px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:4px;
   cursor:pointer;flex-shrink:0;border:none;background:transparent;padding:0;
 }
 .hamburger span{
-  display:block;width:18px;height:1.5px;background:#111;
+  display:block;width:16px;height:1.5px;background:#111;
   transition:all .2s;
 }
 
 /* Generic button */
 .btn{
-  font-family:'Space Mono',monospace;font-size:9px;font-weight:700;
-  letter-spacing:.05em;text-transform:uppercase;
-  padding:5px 10px;border-radius:3px;
+  font-family:'Space Mono',monospace;font-size:8px;font-weight:700;
+  letter-spacing:.04em;text-transform:uppercase;
+  padding:5px 8px;border-radius:3px;
   border:1.5px solid #ccc;color:#999;
   background:transparent;cursor:pointer;transition:all .12s;flex-shrink:0;
 }
@@ -320,7 +320,7 @@ body{
     <div class="bpm-ctrl">
       <span>BPM</span>
       <button class="btn bpm-adj" id="bpm-dn">−</button>
-      <input type="range" id="bpm-s" min="20" max="200" value="80">
+      <input type="range" id="bpm-s" min="20" max="160" value="80">
       <button class="btn bpm-adj" id="bpm-up">+</button>
       <span id="bpm-v">80</span>
     </div>
@@ -689,7 +689,7 @@ bMute.addEventListener('click',()=>{
 bpmS.addEventListener('input',()=>{ bpm=parseInt(bpmS.value); bpmV.textContent=bpm; });
 
 function setBpm(v){
-  bpm=Math.max(20,Math.min(200,v));
+  bpm=Math.max(20,Math.min(160,v));
   bpmS.value=bpm; bpmV.textContent=bpm;
 }
 document.getElementById('bpm-dn').addEventListener('click',()=>setBpm(bpm-1));
@@ -791,7 +791,7 @@ function renderMelodyList(){
   const list = getMelodies();
   const el   = document.getElementById('mel-list');
   if(list.length === 0){
-    el.innerHTML = '<span class="melody-empty">Sin melodías guardadas</span>';
+    el.innerHTML = '<span class="melody-empty">Sin secuencias guardadas</span>';
     return;
   }
   el.innerHTML = list.map((m,i) => `
