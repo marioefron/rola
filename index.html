@@ -49,7 +49,7 @@ body{
   font-size:10px;color:#aaa;flex:1;min-width:0;
 }
 .bpm-ctrl input[type=range]{
-  -webkit-appearance:none;flex:1;min-width:0;max-width:70px;
+  -webkit-appearance:none;flex:1;min-width:0;
   height:3px;background:#ddd;border-radius:2px;outline:none;
 }
 .bpm-ctrl input[type=range]::-webkit-slider-thumb{
@@ -211,19 +211,45 @@ body{
 /* ── TRACK HEADERS ── */
 .track-headers{
   display:flex;flex-shrink:0;
-  border-bottom:1px solid #e8e8e8;height:56px;background:#fafafa;
+  border-bottom:1px solid #e8e8e8;height:44px;background:#fafafa;
 }
 .th-ruler{width:30px;flex-shrink:0;border-right:1px solid #e8e8e8;}
 .th-tracks{display:flex;flex:1;}
 .th-track{
-  flex:1;display:flex;align-items:center;justify-content:center;
+  flex:1;display:flex;align-items:stretch;
   border-right:1px solid #e8e8e8;
   font-size:13px;font-weight:700;letter-spacing:.05em;color:#bbb;
+  overflow:hidden;
 }
 .th-track:last-child{border-right:none;}
-.th-snd{cursor:pointer;transition:color .12s,background .12s;gap:5px;flex-direction:row;}
-.th-snd.on{background:#888;color:#fff;}
-.th-snd.off{background:#fff;color:#ccc;}
+
+/* Zona izquierda: mute (30% del ancho) */
+.th-mute{
+  display:flex;align-items:center;justify-content:center;
+  width:34px;flex-shrink:0;
+  border-right:1px solid #e8e8e8;
+  cursor:pointer;transition:background .12s,color .12s;
+  -webkit-appearance:none;appearance:none;
+  background:transparent;border-top:none;border-bottom:none;border-left:none;
+  padding:0;
+}
+.th-mute.on { background:#888;color:#fff; }
+.th-mute.off{ background:#fff;color:#ccc; }
+
+/* Zona derecha: selector instrumento (resto del ancho) */
+.th-inst{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  cursor:pointer;gap:2px;
+  padding:2px 4px;
+  background:#888;color:#fff;
+  transition:background .12s;
+  -webkit-appearance:none;appearance:none;
+  border:none;font-family:'Space Mono',monospace;
+}
+.th-inst.off{ background:#fff;color:#ccc; }
+.th-inst-num{font-size:11px;font-weight:700;line-height:1;}
+.th-inst-name{font-size:6px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;opacity:.8;line-height:1;}
 .spk-icon{
   width:15px;height:15px;
   fill:none;stroke:currentColor;stroke-width:1.4;
@@ -273,13 +299,22 @@ body{
 
 /* ── INDICATORS ── */
 .indicators{
-  display:flex;flex-shrink:0;
+  display:flex;align-items:center;flex-shrink:0;
   border-top:1px solid #e8e8e8;
-  height:56px;padding:7px 8px 7px 38px;gap:6px;background:#fafafa;
+  height:80px;padding:8px 8px;gap:6px;background:#fafafa;
   transition:background .4s;
 }
+.ind-ruler{
+  width:30px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.ind-dot{
+  width:16px;height:16px;border-radius:50%;
+  background:#111;flex-shrink:0;
+}
 .ind{
-  flex:1;border-radius:2px;border:1.5px solid #111;
+  flex:1;align-self:stretch;
+  border-radius:2px;border:1.5px solid #111;
   display:flex;align-items:center;justify-content:center;
   font-size:13px;font-weight:700;color:#111;
   background:#fff;
@@ -290,7 +325,115 @@ body{
 .ind.cal-white{background:#fff !important;border-color:#111 !important;color:#fff !important;}
 .ind.cal-black{background:#111 !important;border-color:#111 !important;color:#111 !important;}
 
-/* ── CONFIRM MODAL ── */
+/* ── PIANO KEYBOARD MODAL ── */
+#kbd-modal{
+  display:none;position:fixed;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:min(420px,96vw);
+  z-index:300;
+  background:#1a1a1a;
+  border-radius:10px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+  padding:10px 10px 14px;
+  flex-direction:column;gap:8px;
+}
+#kbd-modal.open{display:flex;}
+
+.kbd-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 2px;
+}
+.kbd-track-label{
+  font-size:9px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:#888;
+}
+.kbd-octave-ctrl{
+  display:flex;align-items:center;gap:6px;
+  font-size:9px;color:#666;
+}
+#kbd-oct-val{font-weight:700;color:#aaa;min-width:14px;text-align:center;}
+.kbd-oct-btn{
+  font-family:'Space Mono',monospace;font-size:12px;font-weight:700;
+  border:1px solid #444;color:#aaa;border-radius:3px;
+  width:20px;height:20px;display:flex;align-items:center;justify-content:center;
+  background:#2a2a2a;cursor:pointer;-webkit-appearance:none;appearance:none;padding:0;
+  line-height:1;
+}
+.kbd-close{
+  font-family:'Space Mono',monospace;font-size:8px;font-weight:700;
+  border:1px solid #444;color:#888;border-radius:3px;
+  padding:3px 8px;background:#2a2a2a;cursor:pointer;
+  -webkit-appearance:none;appearance:none;letter-spacing:.05em;text-transform:uppercase;
+}
+
+/* Teclado realista */
+.kbd-keys{
+  position:relative;
+  height:100px;
+  display:flex;
+  gap:2px;
+  user-select:none;
+}
+/* Tecla blanca */
+.kbd-w{
+  flex:1;height:100%;
+  background:linear-gradient(to bottom, #f0f0f0 0%, #fff 60%);
+  border:1px solid #ccc;
+  border-top:none;
+  border-radius:0 0 5px 5px;
+  cursor:pointer;
+  -webkit-appearance:none;appearance:none;padding:0;
+  display:flex;align-items:flex-end;justify-content:center;
+  padding-bottom:5px;
+  box-shadow:inset 0 -3px 0 #ddd, 0 2px 4px rgba(0,0,0,0.3);
+  transition:background .06s,box-shadow .06s;
+  position:relative;
+}
+.kbd-w:active,.kbd-w.sel{
+  background:linear-gradient(to bottom,#d0d8e8 0%,#b8c8e0 100%);
+  box-shadow:inset 0 -1px 0 #a0b0cc, 0 1px 2px rgba(0,0,0,0.2);
+}
+.kbd-w-lbl{
+  font-family:'Space Mono',monospace;
+  font-size:7px;font-weight:700;color:#aaa;
+  letter-spacing:.02em;pointer-events:none;
+}
+.kbd-w.sel .kbd-w-lbl{color:#5580aa;}
+
+/* Tecla negra — overlay absoluto */
+.kbd-blacks-layer{
+  position:absolute;top:0;left:0;right:0;
+  height:62px;
+  pointer-events:none;
+  display:flex;
+}
+.kbd-b-slot{flex:1;display:flex;justify-content:center;position:relative;}
+.kbd-b-slot.has{pointer-events:all;}
+.kbd-b{
+  position:absolute;
+  width:65%;height:100%;
+  background:linear-gradient(to bottom,#222 0%,#111 100%);
+  border:1px solid #000;
+  border-top:none;
+  border-radius:0 0 4px 4px;
+  cursor:pointer;
+  -webkit-appearance:none;appearance:none;padding:0;
+  box-shadow:2px 4px 6px rgba(0,0,0,0.5),inset 0 -2px 0 #333;
+  z-index:2;transition:background .06s,box-shadow .06s;
+  display:flex;align-items:flex-end;justify-content:center;
+  padding-bottom:4px;
+}
+.kbd-b:active,.kbd-b.sel{
+  background:linear-gradient(to bottom,#2a4a6a 0%,#1a3a5a 100%);
+  box-shadow:1px 2px 3px rgba(0,0,0,0.5),inset 0 -1px 0 #2a5a8a;
+}
+.kbd-b-lbl{
+  font-family:'Space Mono',monospace;
+  font-size:6px;font-weight:700;color:#555;
+  pointer-events:none;
+}
+.kbd-b.sel .kbd-b-lbl{color:#88aacc;}
 #confirm-modal{
   display:none;position:fixed;inset:0;z-index:300;
   background:rgba(255,255,255,0.92);
@@ -370,7 +513,7 @@ body{
 <body>
 
 <div class="topbar">
-  <!-- Row 1: logo + bpm + clr-all (edit) + edit btn + hamburger -->
+  <!-- Row 1: logo + BPM + edit + hamburger -->
   <div class="row">
     <div class="logo">ROLLA</div>
     <div class="bpm-ctrl">
@@ -386,7 +529,7 @@ body{
       <span></span><span></span><span></span>
     </button>
   </div>
-  <!-- Row 2: transport + sound toggles -->
+  <!-- Row 2: transport + mute -->
   <div class="row">
     <button class="btn rst" id="b-rst">↺</button>
     <button class="btn play" id="b-play">▶ Play</button>
@@ -430,7 +573,7 @@ body{
     </div>
     <!-- Calibración -->
     <div class="menu-section">
-      <div class="menu-title">Arduino / LDR</div>
+      <div class="menu-title">Calibración</div>
       <button class="menu-cal-btn" onclick="startCalibration()">⊙ Calibrar dispositivo</button>
     </div>
     <!-- Melodías -->
@@ -449,6 +592,23 @@ body{
 <div id="menu-backdrop" onclick="closeMenu()"></div>
 
 <!-- fin banner -->
+
+<!-- Piano keyboard modal -->
+<div id="kbd-modal">
+  <div class="kbd-header">
+    <span class="kbd-track-label" id="kbd-track-label">Pista 1 · Piano</span>
+    <div class="kbd-octave-ctrl">
+      <span>Oct</span>
+      <button class="kbd-oct-btn" onclick="changeOct(-1)">−</button>
+      <span id="kbd-oct-val">4</span>
+      <button class="kbd-oct-btn" onclick="changeOct(1)">+</button>
+    </div>
+    <button class="kbd-close" onclick="closeKbd()">✕ Cerrar</button>
+  </div>
+  <div class="kbd-keys" id="kbd-keys">
+    <!-- generado por JS -->
+  </div>
+</div>
 
 <!-- Confirm modal -->
 <div id="confirm-modal">
@@ -480,10 +640,22 @@ body{
 <div class="track-headers">
   <div class="th-ruler"></div>
   <div class="th-tracks">
-    <div class="th-track th-snd on" id="th0" onclick="tglSnd(0)"><svg class="spk-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h2l3-3v11l-3-3H3z"/><path class="spk-wave1" d="M10 5.5a3 3 0 0 1 0 5"/><path class="spk-wave2" d="M11.5 3.5a5.5 5.5 0 0 1 0 9"/></svg>1</div>
-    <div class="th-track th-snd on" id="th1" onclick="tglSnd(1)"><svg class="spk-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h2l3-3v11l-3-3H3z"/><path class="spk-wave1" d="M10 5.5a3 3 0 0 1 0 5"/><path class="spk-wave2" d="M11.5 3.5a5.5 5.5 0 0 1 0 9"/></svg>2</div>
-    <div class="th-track th-snd on" id="th2" onclick="tglSnd(2)"><svg class="spk-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h2l3-3v11l-3-3H3z"/><path class="spk-wave1" d="M10 5.5a3 3 0 0 1 0 5"/><path class="spk-wave2" d="M11.5 3.5a5.5 5.5 0 0 1 0 9"/></svg>3</div>
-    <div class="th-track th-snd on" id="th3" onclick="tglSnd(3)"><svg class="spk-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h2l3-3v11l-3-3H3z"/><path class="spk-wave1" d="M10 5.5a3 3 0 0 1 0 5"/><path class="spk-wave2" d="M11.5 3.5a5.5 5.5 0 0 1 0 9"/></svg>4</div>
+    <div class="th-track" id="th0">
+      <button class="th-mute on" id="tm0" onclick="tglSnd(0)"><svg class="spk-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h2l3-3v11l-3-3H3z"/><path class="spk-wave1" d="M10 5.5a3 3 0 0 1 0 5"/><path class="spk-wave2" d="M11.5 3.5a5.5 5.5 0 0 1 0 9"/></svg></button>
+      <button class="th-inst" id="ti0" onclick="cycleInst(0)"><span class="th-inst-num">1</span><span class="th-inst-name" id="tn0">Kick</span></button>
+    </div>
+    <div class="th-track" id="th1">
+      <button class="th-mute on" id="tm1" onclick="tglSnd(1)"><svg class="spk-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h2l3-3v11l-3-3H3z"/><path class="spk-wave1" d="M10 5.5a3 3 0 0 1 0 5"/><path class="spk-wave2" d="M11.5 3.5a5.5 5.5 0 0 1 0 9"/></svg></button>
+      <button class="th-inst" id="ti1" onclick="cycleInst(1)"><span class="th-inst-num">2</span><span class="th-inst-name" id="tn1">Snare</span></button>
+    </div>
+    <div class="th-track" id="th2">
+      <button class="th-mute on" id="tm2" onclick="tglSnd(2)"><svg class="spk-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h2l3-3v11l-3-3H3z"/><path class="spk-wave1" d="M10 5.5a3 3 0 0 1 0 5"/><path class="spk-wave2" d="M11.5 3.5a5.5 5.5 0 0 1 0 9"/></svg></button>
+      <button class="th-inst" id="ti2" onclick="cycleInst(2)"><span class="th-inst-num">3</span><span class="th-inst-name" id="tn2">Hihat</span></button>
+    </div>
+    <div class="th-track" id="th3">
+      <button class="th-mute on" id="tm3" onclick="tglSnd(3)"><svg class="spk-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h2l3-3v11l-3-3H3z"/><path class="spk-wave1" d="M10 5.5a3 3 0 0 1 0 5"/><path class="spk-wave2" d="M11.5 3.5a5.5 5.5 0 0 1 0 9"/></svg></button>
+      <button class="th-inst" id="ti3" onclick="cycleInst(3)"><span class="th-inst-num">4</span><span class="th-inst-name" id="tn3">Tom</span></button>
+    </div>
   </div>
 </div>
 
@@ -494,6 +666,7 @@ body{
 </div>
 
 <div class="indicators" id="indicators-row">
+  <div class="ind-ruler"><div class="ind-dot"></div></div>
   <div class="ind" id="ind0">1</div>
   <div class="ind" id="ind1">2</div>
   <div class="ind" id="ind2">3</div>
@@ -559,7 +732,7 @@ function resize(){
   wW=wrapper.clientWidth; wH=wrapper.clientHeight;
   canvas.width=wW; canvas.height=wH;
   tW=(wW-RULER)/TRACKS;
-  rY=Math.round(wH*0.22);
+  rY=Math.round(wH*0.50);
   ppb=wH/(BPB*1.4);
   rline.style.top=rY+'px';
   render();
@@ -798,9 +971,13 @@ bMute.addEventListener('click',()=>{
   const newState = !anyOn;
   sndOn = [newState,newState,newState,newState];
   [0,1,2,3].forEach(t=>{
-    const b=document.getElementById('th'+t);
-    b.classList.toggle('on', newState);
-    b.classList.toggle('off', !newState);
+    const mute=document.getElementById('tm'+t);
+    const inst=document.getElementById('ti'+t);
+    mute.classList.toggle('on', newState); mute.classList.toggle('off',!newState);
+    inst.classList.toggle('off',!newState);
+    mute.querySelectorAll('.spk-wave1,.spk-wave2').forEach(el=>{
+      el.style.display = newState ? '' : 'none';
+    });
   });
   bMute.classList.toggle('on', newState);
   bMute.classList.toggle('off', !newState);
@@ -873,11 +1050,13 @@ function saveMelody(){
   list.unshift({
     name,
     fecha,
-    notes: JSON.parse(JSON.stringify(notes)), // deep copy
+    notes: JSON.parse(JSON.stringify(notes)),
     bars: BARS,
     bpb: BPB,
     sub: SUB,
-    bpm
+    bpm,
+    trackInst: [...trackInst],
+    trackNote: [...trackNote]
   });
 
   saveMelodies(list);
@@ -898,7 +1077,18 @@ function loadMelody(idx){
   TOTAL  = BARS*BPB;
   bpm    = mel.bpm;
 
-  // Actualizar UI
+  // Restaurar instrumentos (con fallback para archivos guardados antes de esta versión)
+  if(mel.trackInst) trackInst = [...mel.trackInst];
+  if(mel.trackNote) trackNote = [...mel.trackNote];
+
+  // Actualizar UI de instrumentos
+  [0,1,2,3].forEach(t => {
+    const inst = INST_NAMES[trackInst[t]];
+    const label = inst === 'Piano' ? 'Piano·'+noteLabel(trackNote[t]) : inst;
+    document.getElementById('tn'+t).textContent = label;
+  });
+
+  // Actualizar UI de metro
   document.getElementById('bars-v').textContent = BARS;
   document.getElementById('bpc-v').textContent  = BPB;
   document.getElementById('bpm-s').value        = bpm;
@@ -990,7 +1180,7 @@ function playCalBeep(freq=880, dur=0.12, vol=0.4){
   const o=ac.createOscillator(), g=ac.createGain();
   o.type='square';
   o.frequency.value=freq;
-  o.connect(g); g.connect(ac.destination);
+  o.connect(g); g.connect(ac._master || ac.destination);
   g.gain.setValueAtTime(vol, ac.currentTime);
   g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+dur);
   o.start(ac.currentTime); o.stop(ac.currentTime+dur);
@@ -1070,12 +1260,31 @@ let bufs = null;
 
 function initAudio(){
   if(ac) return;
-  ac   = new (window.AudioContext || window.webkitAudioContext)();
+  ac = new (window.AudioContext || window.webkitAudioContext)();
+
+  // Compresor maestro — evita saturación cuando suenan varios canales a la vez
+  const comp = ac.createDynamicsCompressor();
+  comp.threshold.value = -18;
+  comp.knee.value      = 6;
+  comp.ratio.value     = 4;
+  comp.attack.value    = 0.003;
+  comp.release.value   = 0.15;
+
+  // Ganancia maestra — da headroom antes del compresor
+  const master = ac.createGain();
+  master.gain.value = 0.7;
+  master.connect(comp);
+  comp.connect(ac.destination);
+
+  // Todos los sonidos se conectan a ac._master en lugar de ac.destination
+  ac._master = master;
+
   bufs = buildBuffers(ac);
-  // Keepalive: oscilador silencioso para que iOS no suspenda el contexto
-  const g=ac.createGain(); g.gain.value=0.001; g.connect(ac.destination);
-  const osc=ac.createOscillator(); osc.frequency.value=1; osc.connect(g); osc.start();
-  // Remover listeners una vez inicializado
+
+  // Keepalive silencioso
+  const g = ac.createGain(); g.gain.value = 0.001; g.connect(ac._master);
+  const osc = ac.createOscillator(); osc.frequency.value = 1; osc.connect(g); osc.start();
+
   ['touchstart','mousedown','pointerdown'].forEach(ev=>
     document.removeEventListener(ev, initAudio)
   );
@@ -1117,24 +1326,185 @@ function buildBuffers(a){
     }
     return b;
   }
-  return [makeKick(), makeSnare(), makeHihat(), makeTom()];
+  function makePiano(){
+    // Nota Do4 (261.63 Hz) con decaimiento tipo piano
+    const len=Math.ceil(a.sampleRate*1.2), b=a.createBuffer(1,len,a.sampleRate), d=b.getChannelData(0);
+    for(let i=0;i<len;i++){
+      const t=i/a.sampleRate;
+      const env=Math.exp(-t*3.5);
+      d[i]=(
+        Math.sin(2*Math.PI*261.63*t)*0.6 +
+        Math.sin(2*Math.PI*523.25*t)*0.25 +
+        Math.sin(2*Math.PI*784.00*t)*0.1 +
+        Math.sin(2*Math.PI*1046.5*t)*0.05
+      )*env;
+    }
+    return b;
+  }
+  return [makeKick(), makeSnare(), makeHihat(), makeTom(), makePiano()];
+}
+
+// ── INSTRUMENTOS Y TECLADO ───────────────────────────────────────
+const INST_NAMES = ['Kick','Snare','Hihat','Tom','Piano'];
+let trackInst = [0, 1, 2, 3];   // instrumento por pista
+let trackNote = [60, 60, 60, 60]; // nota MIDI por pista (Do4=60)
+
+// Notas cromáticas
+const NOTE_NAMES = ['Do','Do#','Re','Re#','Mi','Fa','Fa#','Sol','Sol#','La','La#','Si'];
+// Patrón de teclas blancas/negras en una octava: true=negra
+const BLACK = [false,true,false,true,false,false,true,false,true,false,true,false];
+
+let kbdTrack   = 0;   // pista activa en el teclado
+let kbdOctave  = 4;   // octava mostrada
+
+function midiToFreq(midi){ return 440 * Math.pow(2, (midi - 69) / 12); }
+function noteLabel(midi){
+  const name = NOTE_NAMES[midi % 12];
+  const oct  = Math.floor(midi / 12) - 1;
+  return name + oct;
+}
+
+function buildKbd(){
+  const wrap = document.getElementById('kbd-keys');
+  wrap.innerHTML = '';
+  const baseMidi = (kbdOctave + 1) * 12;
+  const whiteOffsets = [0,2,4,5,7,9,11];
+
+  // Teclas blancas
+  whiteOffsets.forEach(semi => {
+    const midi = baseMidi + semi;
+    const btn  = document.createElement('button');
+    btn.className = 'kbd-w' + (midi === trackNote[kbdTrack] ? ' sel' : '');
+    const lbl = NOTE_NAMES[semi] + (semi === 0 ? kbdOctave : '');
+    btn.innerHTML = `<span class="kbd-w-lbl">${lbl}</span>`;
+    btn.addEventListener('pointerdown', e => { e.preventDefault(); selectNote(midi); });
+    wrap.appendChild(btn);
+  });
+
+  // Capa de teclas negras
+  const blackLayer = document.createElement('div');
+  blackLayer.className = 'kbd-blacks-layer';
+  whiteOffsets.forEach(semi => {
+    const slot = document.createElement('div');
+    slot.className = 'kbd-b-slot';
+    const nextSemi = semi + 1;
+    if(nextSemi < 12 && BLACK[nextSemi]){
+      slot.classList.add('has');
+      const midi = baseMidi + nextSemi;
+      const btn  = document.createElement('button');
+      btn.className = 'kbd-b' + (midi === trackNote[kbdTrack] ? ' sel' : '');
+      btn.innerHTML = `<span class="kbd-b-lbl">${NOTE_NAMES[nextSemi].replace('#','♯')}</span>`;
+      btn.addEventListener('pointerdown', e => { e.preventDefault(); selectNote(midi); });
+      slot.appendChild(btn);
+    }
+    blackLayer.appendChild(slot);
+  });
+  wrap.appendChild(blackLayer);
+}
+
+function selectNote(midi){
+  trackNote[kbdTrack] = midi;
+  // Preview del sonido
+  playPianoNote(midi, 0.5);
+  // Actualizar etiqueta del botón de pista
+  document.getElementById('tn'+kbdTrack).textContent = 'Piano·'+noteLabel(midi);
+  // Redibujar teclado para resaltar la nota seleccionada
+  buildKbd();
+}
+
+function changeOct(dir){
+  kbdOctave = Math.max(1, Math.min(7, kbdOctave + dir));
+  document.getElementById('kbd-oct-val').textContent = kbdOctave;
+  buildKbd();
+}
+
+function openKbd(t){
+  kbdTrack  = t;
+  kbdOctave = Math.floor(trackNote[t] / 12) - 1;
+  document.getElementById('kbd-oct-val').textContent = kbdOctave;
+  document.getElementById('kbd-track-label').textContent =
+    'Pista ' + (t+1) + ' · Piano';
+  buildKbd();
+  document.getElementById('kbd-modal').classList.add('open');
+}
+
+function closeKbd(){
+  document.getElementById('kbd-modal').classList.remove('open');
+}
+
+function cycleInst(t){
+  trackInst[t] = (trackInst[t] + 1) % INST_NAMES.length;
+  const inst   = INST_NAMES[trackInst[t]];
+  if(inst === 'Piano'){
+    document.getElementById('tn'+t).textContent = 'Piano·'+noteLabel(trackNote[t]);
+    initAudio();
+    playPianoNote(trackNote[t], 0.5);
+    openKbd(t);
+  } else {
+    document.getElementById('tn'+t).textContent = inst;
+    // Cerrar el teclado si estaba abierto para esta pista
+    closeKbd();
+    // Preview del instrumento de percusión
+    initAudio();
+    if(ac && bufs){
+      if(ac.state==='suspended') ac.resume();
+      const s=ac.createBufferSource();
+      s.buffer=bufs[trackInst[t]];
+      s.connect(ac._master || ac.destination);
+      s.start(0);
+    }
+  }
+}
+
+// Síntesis de piano por nota (en tiempo real, sin buffer fijo)
+function playPianoNote(midi, dur=0.8){
+  if(!ac) return;
+  if(ac.state==='suspended') ac.resume();
+  const freq = midiToFreq(midi);
+  const len  = Math.ceil(ac.sampleRate * dur);
+  const buf  = ac.createBuffer(1, len, ac.sampleRate);
+  const d    = buf.getChannelData(0);
+  for(let i = 0; i < len; i++){
+    const t   = i / ac.sampleRate;
+    const env = Math.exp(-t * 3.5);
+    d[i] = (
+      Math.sin(2*Math.PI*freq    *t)*0.60 +
+      Math.sin(2*Math.PI*freq*2  *t)*0.25 +
+      Math.sin(2*Math.PI*freq*3  *t)*0.10 +
+      Math.sin(2*Math.PI*freq*4  *t)*0.05
+    ) * env;
+  }
+  const s = ac.createBufferSource();
+  s.buffer = buf; s.connect(ac._master || ac.destination); s.start(0);
+}
+
+function tglSnd(t){
+  sndOn[t]=!sndOn[t];
+  const mute=document.getElementById('tm'+t);
+  const inst=document.getElementById('ti'+t);
+  const on=sndOn[t];
+  mute.classList.toggle('on', on); mute.classList.toggle('off',!on);
+  inst.classList.toggle('off',!on);
+  mute.querySelectorAll('.spk-wave1,.spk-wave2').forEach(el=>{
+    el.style.display = on ? '' : 'none';
+  });
 }
 
 function trigSnd(t){
   if(!sndOn[t]) return;
   initAudio();
-  if(!bufs) return;
+  if(!ac) return;
   if(ac.state==='suspended'){ ac.resume(); return; }
-  const s=ac.createBufferSource();
-  s.buffer=bufs[t];
-  s.connect(ac.destination);
-  s.start(0);
-}
-
-function tglSnd(t){
-  sndOn[t]=!sndOn[t];
-  const b=document.getElementById('th'+t), on=sndOn[t];
-  b.classList.toggle('on',on); b.classList.toggle('off',!on);
+  if(trackInst[t] === 4){
+    // Piano: síntesis en tiempo real con la nota seleccionada
+    playPianoNote(trackNote[t], 0.8);
+  } else {
+    if(!bufs) return;
+    const s=ac.createBufferSource();
+    s.buffer=bufs[trackInst[t]];
+    s.connect(ac._master || ac.destination);
+    s.start(0);
+  }
 }
 
 // ── INIT ─────────────────────────────────────────────────────────
