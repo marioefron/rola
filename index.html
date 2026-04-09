@@ -202,6 +202,15 @@ body{
 .btn.del-mel{padding:3px 7px;border-color:#ddd;color:#bbb;font-size:10px;}
 .melody-empty{font-size:9px;color:#ccc;letter-spacing:.05em;}
 
+/* Ayuda */
+.menu-help{
+  display:flex;flex-direction:column;gap:7px;
+}
+.menu-help p{
+  font-size:9px;color:#666;line-height:1.6;letter-spacing:.02em;
+}
+.menu-help b{color:#111;}
+
 /* Overlay backdrop (cierra el menú al tocar fuera) */
 #menu-backdrop{
   display:none;position:fixed;inset:0;z-index:49;
@@ -330,12 +339,12 @@ body{
   display:none;position:fixed;
   top:50%;left:50%;
   transform:translate(-50%,-50%);
-  width:min(420px,96vw);
+  width:min(400px,96vw);
   z-index:300;
-  background:#1a1a1a;
-  border-radius:10px;
-  box-shadow:0 8px 32px rgba(0,0,0,0.4);
-  padding:10px 10px 14px;
+  background:#fff;
+  border:1.5px solid #111;
+  border-radius:4px;
+  padding:10px 10px 12px;
   flex-direction:column;gap:8px;
 }
 #kbd-modal.open{display:flex;}
@@ -349,28 +358,28 @@ body{
   text-transform:uppercase;color:#888;
 }
 .kbd-octave-ctrl{
-  display:flex;align-items:center;gap:6px;
-  font-size:9px;color:#666;
+  display:flex;align-items:center;gap:5px;
+  font-size:9px;color:#aaa;
 }
-#kbd-oct-val{font-weight:700;color:#aaa;min-width:14px;text-align:center;}
+#kbd-oct-val{font-weight:700;color:#111;min-width:14px;text-align:center;}
 .kbd-oct-btn{
-  font-family:'Space Mono',monospace;font-size:12px;font-weight:700;
-  border:1px solid #444;color:#aaa;border-radius:3px;
+  font-family:'Space Mono',monospace;font-size:11px;font-weight:700;
+  border:1.5px solid #ccc;color:#888;border-radius:3px;
   width:20px;height:20px;display:flex;align-items:center;justify-content:center;
-  background:#2a2a2a;cursor:pointer;-webkit-appearance:none;appearance:none;padding:0;
+  background:transparent;cursor:pointer;-webkit-appearance:none;appearance:none;padding:0;
   line-height:1;
 }
 .kbd-close{
   font-family:'Space Mono',monospace;font-size:8px;font-weight:700;
-  border:1px solid #444;color:#888;border-radius:3px;
-  padding:3px 8px;background:#2a2a2a;cursor:pointer;
+  border:1.5px solid #ccc;color:#888;border-radius:3px;
+  padding:3px 8px;background:transparent;cursor:pointer;
   -webkit-appearance:none;appearance:none;letter-spacing:.05em;text-transform:uppercase;
 }
 
-/* Teclado realista */
+/* Teclado minimalista */
 .kbd-keys{
   position:relative;
-  height:100px;
+  height:90px;
   display:flex;
   gap:2px;
   user-select:none;
@@ -378,33 +387,31 @@ body{
 /* Tecla blanca */
 .kbd-w{
   flex:1;height:100%;
-  background:linear-gradient(to bottom, #f0f0f0 0%, #fff 60%);
-  border:1px solid #ccc;
+  background:#fff;
+  border:1.5px solid #111;
   border-top:none;
-  border-radius:0 0 5px 5px;
+  border-radius:0 0 3px 3px;
   cursor:pointer;
   -webkit-appearance:none;appearance:none;padding:0;
   display:flex;align-items:flex-end;justify-content:center;
-  padding-bottom:5px;
-  box-shadow:inset 0 -3px 0 #ddd, 0 2px 4px rgba(0,0,0,0.3);
-  transition:background .06s,box-shadow .06s;
+  padding-bottom:4px;
+  transition:background .06s;
   position:relative;
 }
 .kbd-w:active,.kbd-w.sel{
-  background:linear-gradient(to bottom,#d0d8e8 0%,#b8c8e0 100%);
-  box-shadow:inset 0 -1px 0 #a0b0cc, 0 1px 2px rgba(0,0,0,0.2);
+  background:#ddd;
 }
 .kbd-w-lbl{
   font-family:'Space Mono',monospace;
-  font-size:7px;font-weight:700;color:#aaa;
+  font-size:7px;font-weight:700;color:#bbb;
   letter-spacing:.02em;pointer-events:none;
 }
-.kbd-w.sel .kbd-w-lbl{color:#5580aa;}
+.kbd-w.sel .kbd-w-lbl{color:#555;}
 
-/* Tecla negra — overlay absoluto */
+/* Tecla negra */
 .kbd-blacks-layer{
   position:absolute;top:0;left:0;right:0;
-  height:62px;
+  height:56px;
   pointer-events:none;
   display:flex;
 }
@@ -413,27 +420,24 @@ body{
 .kbd-b{
   position:absolute;
   width:65%;height:100%;
-  background:linear-gradient(to bottom,#222 0%,#111 100%);
-  border:1px solid #000;
-  border-top:none;
-  border-radius:0 0 4px 4px;
+  background:#111;
+  border:none;
+  border-radius:0 0 3px 3px;
   cursor:pointer;
   -webkit-appearance:none;appearance:none;padding:0;
-  box-shadow:2px 4px 6px rgba(0,0,0,0.5),inset 0 -2px 0 #333;
-  z-index:2;transition:background .06s,box-shadow .06s;
+  z-index:2;transition:background .06s;
   display:flex;align-items:flex-end;justify-content:center;
-  padding-bottom:4px;
+  padding-bottom:3px;
 }
 .kbd-b:active,.kbd-b.sel{
-  background:linear-gradient(to bottom,#2a4a6a 0%,#1a3a5a 100%);
-  box-shadow:1px 2px 3px rgba(0,0,0,0.5),inset 0 -1px 0 #2a5a8a;
+  background:#555;
 }
 .kbd-b-lbl{
   font-family:'Space Mono',monospace;
-  font-size:6px;font-weight:700;color:#555;
+  font-size:6px;font-weight:700;color:#888;
   pointer-events:none;
 }
-.kbd-b.sel .kbd-b-lbl{color:#88aacc;}
+.kbd-b.sel .kbd-b-lbl{color:#ccc;}
 #confirm-modal{
   display:none;position:fixed;inset:0;z-index:300;
   background:rgba(255,255,255,0.92);
@@ -585,10 +589,21 @@ body{
       </div>
       <div class="melody-list" id="mel-list"></div>
     </div>
+    <!-- Ayuda -->
+    <div class="menu-section">
+      <button class="menu-cal-btn" onclick="toggleHelp()">Ayuda</button>
+      <div class="menu-help" id="menu-help" style="display:none;margin-top:10px;">
+        <p><b>Editar</b> — activá el modo edición para agregar o borrar notas tocando sobre las pistas. Deslizá para navegar la secuencia.</p>
+        <p><b>Pistas</b> — tocá el ícono del speaker para silenciar/activar. Tocá el nombre del instrumento para cambiarlo. Piano permite elegir la nota.</p>
+        <p><b>BPM</b> — usá el deslizador o los botones − + para ajustar el tempo.</p>
+        <p><b>Loop</b> — activa la repetición continua de la secuencia.</p>
+        <p><b>Silenciar</b> — silencia o activa todas las pistas a la vez.</p>
+        <p><b>Calibrar</b> — sincroniza los sensores LDR del dispositivo físico con los colores de la pantalla.</p>
+        <p><b>Mis secuencias</b> — guardá y cargá tus ritmos por nombre.</p>
+      </div>
+    </div>
   </div>
 </div>
-
-<!-- Backdrop -->
 <div id="menu-backdrop" onclick="closeMenu()"></div>
 
 <!-- fin banner -->
@@ -933,7 +948,7 @@ canvas.addEventListener('pointerup',e=>{
     const s=Math.round(beat*SUB)/SUB;
     if(s>=0&&s<TOTAL){ notes[t].push(s); notes[t].sort((a,b)=>a-b); }
   }
-  trigSnd(t); render();
+  trigSnd(t); render(); saveSession();
 });
 
 // ── CONTROLS ─────────────────────────────────────────────────────
@@ -949,7 +964,7 @@ bClrAll.addEventListener('click',()=>{
 
 function confirmResp(yes){
   document.getElementById('confirm-modal').classList.remove('open');
-  if(yes){ notes=[[],[],[],[]]; render(); }
+  if(yes){ notes=[[],[],[],[]]; render(); saveSession(); }
 }
 editBtn.addEventListener('click',()=>{
   editMode=!editMode;
@@ -984,7 +999,7 @@ bMute.addEventListener('click',()=>{
   bMute.querySelector('span').textContent = newState ? 'Silenciar' : 'Activar';
 });
 
-bpmS.addEventListener('input',()=>{ bpm=parseInt(bpmS.value); bpmV.textContent=bpm; });
+bpmS.addEventListener('input',()=>{ bpm=parseInt(bpmS.value); bpmV.textContent=bpm; saveSession(); });
 
 function setBpm(v){
   bpm=Math.max(20,Math.min(160,v));
@@ -995,34 +1010,34 @@ document.getElementById('bpm-up').addEventListener('click',()=>setBpm(bpm+1));
 document.getElementById('bars-dn').addEventListener('click',()=>{
   if(BARS<=1) return; BARS--;
   document.getElementById('bars-v').textContent=BARS;
-  recomputeMeter(); render();
+  recomputeMeter(); render(); saveSession();
 });
 document.getElementById('bars-up').addEventListener('click',()=>{
   if(BARS>=32) return; BARS++;
   document.getElementById('bars-v').textContent=BARS;
-  recomputeMeter(); render();
+  recomputeMeter(); render(); saveSession();
 });
 document.getElementById('bpc-dn').addEventListener('click',()=>{
   if(BPB<=1) return; BPB--;
   document.getElementById('bpc-v').textContent=BPB;
-  recomputeMeter(); render();
+  recomputeMeter(); render(); saveSession();
 });
 document.getElementById('bpc-up').addEventListener('click',()=>{
   if(BPB>=12) return; BPB++;
   document.getElementById('bpc-v').textContent=BPB;
-  recomputeMeter(); render();
+  recomputeMeter(); render(); saveSession();
 });
 document.getElementById('sub-bin').addEventListener('click',()=>{
   SUB=4;
   document.getElementById('sub-bin').classList.add('on');
   document.getElementById('sub-ter').classList.remove('on');
-  recomputeMeter(); render();
+  recomputeMeter(); render(); saveSession();
 });
 document.getElementById('sub-ter').addEventListener('click',()=>{
   SUB=3;
   document.getElementById('sub-ter').classList.add('on');
   document.getElementById('sub-bin').classList.remove('on');
-  recomputeMeter(); render();
+  recomputeMeter(); render(); saveSession();
 });
 
 // ── MELODÍAS ─────────────────────────────────────────────────────
@@ -1124,6 +1139,11 @@ function renderMelodyList(){
       <button class="btn del-mel" onclick="deleteMelody(${i})">✕</button>
     </div>
   `).join('');
+}
+
+function toggleHelp(){
+  const el = document.getElementById('menu-help');
+  el.style.display = el.style.display === 'none' ? 'flex' : 'none';
 }
 
 // ── HAMBURGER MENU ───────────────────────────────────────────────
@@ -1454,6 +1474,7 @@ function cycleInst(t){
       s.start(0);
     }
   }
+  saveSession();
 }
 
 // Síntesis de piano por nota (en tiempo real, sin buffer fijo)
@@ -1508,7 +1529,51 @@ function trigSnd(t){
 }
 
 // ── INIT ─────────────────────────────────────────────────────────
-window.addEventListener('resize',resize);
+
+// Auto-guardar sesión actual cada vez que cambia el estado relevante
+const SESSION_KEY = 'rolla_session';
+
+function saveSession(){
+  try{
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
+      notes, BARS, BPB, SUB, bpm,
+      trackInst: [...trackInst],
+      trackNote: [...trackNote]
+    }));
+  } catch(e){}
+}
+
+function restoreSession(){
+  try{
+    const raw = localStorage.getItem(SESSION_KEY);
+    if(!raw) return;
+    const s = JSON.parse(raw);
+    if(s.notes)     notes     = s.notes;
+    if(s.BARS)      BARS      = s.BARS;
+    if(s.BPB)       BPB       = s.BPB;
+    if(s.SUB)       SUB       = s.SUB;
+    if(s.bpm)       bpm       = s.bpm;
+    if(s.trackInst) trackInst = s.trackInst;
+    if(s.trackNote) trackNote = s.trackNote;
+    SNAP  = 1/SUB;
+    TOTAL = BARS*BPB;
+    // Actualizar UI
+    document.getElementById('bars-v').textContent = BARS;
+    document.getElementById('bpm-s').value        = bpm;
+    document.getElementById('bpm-v').textContent  = bpm;
+    document.getElementById('sub-bin').classList.toggle('on', SUB===4);
+    document.getElementById('sub-ter').classList.toggle('on', SUB===3);
+    [0,1,2,3].forEach(t=>{
+      const inst = INST_NAMES[trackInst[t]];
+      document.getElementById('tn'+t).textContent =
+        inst==='Piano' ? 'Piano·'+noteLabel(trackNote[t]) : inst;
+    });
+  } catch(e){}
+}
+
+// Guardar sesión al modificar notas, instrumentos o metro
+window.addEventListener('resize', resize);
+restoreSession();
 resize();
 </script>
 </body>
