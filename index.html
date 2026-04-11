@@ -257,8 +257,8 @@ body{
   border:none;font-family:'Space Mono',monospace;
 }
 .th-inst.off{ background:#fff;color:#ccc; }
-.th-inst-num{font-size:11px;font-weight:700;line-height:1;}
-.th-inst-name{font-size:6px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;opacity:.8;line-height:1;}
+.th-inst-num{font-size:13px;font-weight:700;line-height:1;}
+.th-inst-name{font-size:8px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.85;line-height:1;}
 .spk-icon{
   width:15px;height:15px;
   fill:none;stroke:currentColor;stroke-width:1.4;
@@ -529,7 +529,7 @@ body{
     </div>
     <button class="btn clr-all" id="btn-clr-all">Limpiar</button>
     <button class="btn edit" id="edit-btn">✏ Editar</button>
-    <button class="hamburger" id="hamburger-btn" onclick="toggleMenu()">
+    <button class="hamburger" id="hamburger-btn">
       <span></span><span></span><span></span>
     </button>
   </div>
@@ -583,6 +583,10 @@ body{
     <!-- Melodías -->
     <div class="menu-section">
       <div class="menu-title">Mis secuencias</div>
+      <div id="active-seq-bar" style="display:none;margin-bottom:8px;padding:5px 8px;background:#f5f5f5;border-radius:3px;border:1px solid #e0e0e0;display:none;align-items:center;gap:6px;">
+        <span style="font-size:8px;color:#888;letter-spacing:.05em;text-transform:uppercase;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="active-seq-name"></span>
+        <button class="btn save-mel" onclick="updateMelody()" style="flex-shrink:0;">Actualizar</button>
+      </div>
       <div class="melody-save-row">
         <input class="melody-name-input" id="mel-name" type="text" placeholder="Nombre de archivo" maxlength="30">
         <button class="btn save-mel" onclick="saveMelody()">Guardar</button>
@@ -604,7 +608,7 @@ body{
     </div>
   </div>
 </div>
-<div id="menu-backdrop" onclick="closeMenu()"></div>
+<div id="menu-backdrop"></div>
 
 <!-- fin banner -->
 
@@ -1042,7 +1046,37 @@ document.getElementById('sub-ter').addEventListener('click',()=>{
 
 // ── MELODÍAS ─────────────────────────────────────────────────────
 const MEL_KEY = 'rola_melodies';
+let activeSeqIdx = -1; // índice de la secuencia activa (-1 = ninguna)
 
+function setActiveSeq(idx, name){
+  activeSeqIdx = idx;
+  const bar = document.getElementById('active-seq-bar');
+  if(idx >= 0){
+    document.getElementById('active-seq-name').textContent = '↺ ' + name;
+    bar.style.display = 'flex';
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+function updateMelody(){
+  if(activeSeqIdx < 0) return;
+  const list = getMelodies();
+  if(!list[activeSeqIdx]) return;
+  const now  = new Date();
+  const fecha = now.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'})
+              + ' ' + now.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+  list[activeSeqIdx] = {
+    ...list[activeSeqIdx],
+    fecha,
+    notes: JSON.parse(JSON.stringify(notes)),
+    bars: BARS, bpb: BPB, sub: SUB, bpm,
+    trackInst: [...trackInst],
+    trackNote: [...trackNote]
+  };
+  saveMelodies(list);
+  renderMelodyList();
+}
 function getMelodies(){
   try{ return JSON.parse(localStorage.getItem(MEL_KEY)) || []; }
   catch(e){ return []; }
@@ -1076,6 +1110,7 @@ function saveMelody(){
 
   saveMelodies(list);
   input.value = '';
+  setActiveSeq(-1, ''); // nueva secuencia — resetear activa
   renderMelodyList();
 }
 
@@ -1114,6 +1149,7 @@ function loadMelody(idx){
   clearTrig();
   pausePlay();
   closeMenu();
+  setActiveSeq(idx, mel.name);
   render();
 }
 
@@ -1121,6 +1157,10 @@ function deleteMelody(idx){
   const list = getMelodies();
   list.splice(idx, 1);
   saveMelodies(list);
+  // Ajustar índice activo
+  if(activeSeqIdx === idx) setActiveSeq(-1, '');
+  else if(activeSeqIdx > idx) setActiveSeq(activeSeqIdx - 1,
+    document.getElementById('active-seq-name').textContent.replace('↺ ',''));
   renderMelodyList();
 }
 
@@ -1161,6 +1201,9 @@ function closeMenu(){
   document.getElementById('side-menu').classList.remove('open');
   document.getElementById('menu-backdrop').classList.remove('open');
 }
+
+document.getElementById('hamburger-btn').addEventListener('click', toggleMenu);
+document.getElementById('menu-backdrop').addEventListener('click', closeMenu);
 
 // ── CALIBRATION ──────────────────────────────────────────────────
 const calModal       = document.getElementById('cal-modal');
